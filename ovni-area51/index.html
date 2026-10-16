@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Passo a passo do easter egg do OVNI no mapa Area 51 do Battlefield 6, com mapa, fotos, a conta das luzes e o leitor do código. Solução de DANNYonPC e da comunidade Battlefield Easter Eggs.">
+<title>Arquivo 51: o OVNI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Allerta+Stencil&family=Special+Elite&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+/* Layout: um dossiê militar desclassificado sobre a mesa. Pasta parda, ficha-resumo no topo,
+   cada etapa é uma folha com o resumo à vista e o detalhe dobrado; fotos presas com clipe.
+   Tema único claro, de propósito: papel. */
+:root{
+  --mesa:#3b4a3f;        /* feltro verde-oliva da mesa */
+  --pasta:#d9b97a;       /* pasta parda */
+  --papel:#f6efdc;       /* folha */
+  --tinta:#1c1a15;       /* texto */
+  --tinta2:#4a4436;      /* texto secundário */
+  --carimbo:#b0231b;     /* vermelho de carimbo */
+  --marca:#ffe066;       /* marca-texto */
+  --verde:#2f9e50; --amarelo:#e5b80b; --vermelho:#d8392f; --azul:#2a6fdb;
+  --linha:#c9b88f;
+  --stencil:"Allerta Stencil","Arial Black",Impact,sans-serif;
+  --maquina:"Special Elite","Courier New",Courier,monospace;
+  --corpo:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--mesa);color:var(--tinta);font-family:var(--corpo);font-size:20px;line-height:1.55;
+  background-image:radial-gradient(rgba(255,255,255,.05) 1px,transparent 1px);background-size:6px 6px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 64px}
+.pasta{max-width:1080px;margin:0 auto;background:var(--pasta);border-radius:4px 14px 6px 6px;padding:clamp(14px,3vw,34px);
+  box-shadow:0 18px 40px rgba(0,0,0,.45);position:relative;display:flex;flex-direction:column;gap:28px}
+.pasta::before{content:"ARQUIVO 51";position:absolute;top:-30px;left:24px;background:var(--pasta);padding:6px 22px 4px;
+  border-radius:8px 8px 0 0;font-family:var(--maquina);font-size:1rem;letter-spacing:.2em;color:var(--tinta2)}
+.folha{background:var(--papel);border-radius:3px;padding:clamp(18px,3vw,36px);box-shadow:0 2px 0 rgba(0,0,0,.08),0 6px 16px rgba(0,0,0,.18);position:relative;min-width:0}
+h1,h2{font-family:var(--stencil);font-weight:400;margin:0;text-wrap:balance;letter-spacing:.02em;line-height:1.05}
+h1{font-size:clamp(2.4rem,7vw,4.4rem)}
+h2{font-size:clamp(1.7rem,4.2vw,2.4rem)}
+h3{font-family:var(--corpo);font-size:1.3rem;margin:0}
+p{margin:0}
+a{color:var(--azul);text-underline-offset:3px}
+.maquina{font-family:var(--maquina);letter-spacing:.06em}
+.rotulo{font-family:var(--maquina);font-size:.95rem;letter-spacing:.14em;text-transform:uppercase;color:var(--tinta2)}
+mark{background:linear-gradient(transparent 12%,var(--marca) 12%,var(--marca) 88%,transparent 88%);color:inherit;padding:0 .15em}
+
+/* carimbos */
+.carimbo{display:inline-block;font-family:var(--stencil);color:var(--carimbo);border:4px solid var(--carimbo);border-radius:6px;
+  padding:4px 14px 2px;letter-spacing:.08em;transform:rotate(-6deg);opacity:.9;mix-blend-mode:multiply;text-transform:uppercase}
+.capa{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:start}
+@media (max-width:640px){.capa{grid-template-columns:1fr}}
+.capa .carimbos{display:flex;flex-direction:column;gap:14px;align-items:flex-end}
+.capa .carimbo.grande{font-size:1.5rem}
+.capa .carimbo.ok{color:var(--verde);border-color:var(--verde);transform:rotate(4deg);font-size:1.15rem}
+.linha-meta{display:flex;flex-wrap:wrap;gap:6px 22px;margin-top:14px}
+
+/* ficha resumo */
+.resumo ol{list-style:none;margin:18px 0 0;padding:0;display:flex;flex-direction:column;gap:10px;counter-reset:passo}
+.resumo li{counter-increment:passo;display:grid;grid-template-columns:3.2rem 1fr;gap:14px;align-items:center;
+  padding:12px 14px;border:2px dashed var(--linha);border-radius:4px}
+.resumo li::before{content:counter(passo);font-family:var(--stencil);font-size:2.2rem;line-height:1;color:var(--carimbo);text-align:center}
+.resumo li a{color:var(--tinta);text-decoration:none;font-weight:700}
+.resumo li a:hover,.resumo li a:focus-visible{text-decoration:underline}
+.resumo li span{display:block;font-weight:400;color:var(--tinta2);font-size:1rem}
+
+/* etapas */
+.etapa{scroll-margin-top:16px}
+.etapa .cab{display:flex;gap:16px;align-items:baseline;flex-wrap:wrap}
+.etapa .num{font-family:var(--stencil);font-size:3rem;line-height:.9;color:var(--carimbo)}
+.etapa .curto{font-size:1.25rem;margin-top:12px;max-width:60ch}
+details{margin-top:18px;border-top:2px solid var(--linha);padding-top:14px}
+summary{cursor:pointer;font-family:var(--maquina);font-size:1.05rem;letter-spacing:.08em;text-transform:uppercase;color:var(--tinta);
+  display:inline-flex;align-items:center;gap:10px;padding:8px 14px;border:2px solid var(--tinta);border-radius:4px;background:#fff8e6;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"+";font-family:var(--corpo);font-weight:700;font-size:1.3rem;line-height:1}
+details[open] summary::before{content:"−"}
+summary:focus-visible{outline:3px solid var(--azul);outline-offset:3px}
+.detalhe{display:flex;flex-direction:column;gap:18px;margin-top:18px}
+.detalhe > p,.detalhe li{max-width:66ch}
+.detalhe ul,.detalhe ol{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:8px}
+.aviso{border-left:6px solid var(--carimbo);background:#fbe7dc;padding:12px 16px;border-radius:0 4px 4px 0}
+
+/* fotos presas */
+.foto{background:#fff;padding:10px 10px 12px;box-shadow:0 4px 12px rgba(0,0,0,.25);position:relative;margin:0;max-width:100%}
+.foto::before{content:"";position:absolute;top:-12px;left:28px;width:22px;height:46px;border:4px solid #8d8d8d;border-radius:11px;border-bottom-color:transparent;transform:rotate(8deg)}
+.foto img{display:block;width:100%;height:auto;cursor:zoom-in}
+.foto figcaption{font-family:var(--maquina);font-size:1rem;margin-top:8px;color:var(--tinta)}
+.giro-a{transform:rotate(-1.2deg)} .giro-b{transform:rotate(.9deg)}
+
+/* mapa */
+.mapa{position:relative;margin-top:22px}
+.mapa .quadro{position:relative}
+.mapa img{cursor:default}
+.alvo{position:absolute;transform:translate(-50%,-50%);width:clamp(30px,4.6vw,52px);aspect-ratio:1;border-radius:50%;
+  border:3px solid #44e2f2;background:rgba(68,226,242,.15);box-shadow:0 0 0 3px rgba(0,0,0,.55)}
+.alvo.porta{border-color:#ffc23d;background:rgba(255,194,61,.2)}
+.alvo:hover,.alvo:focus-visible{background:rgba(68,226,242,.55);outline:none}
+.alvo.porta:hover,.alvo.porta:focus-visible{background:rgba(255,194,61,.6)}
+
+.torres{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:26px 22px}
+.torre{scroll-margin-top:16px}
+.torre:target .foto{outline:4px solid var(--carimbo);outline-offset:4px}
+.torre figcaption b{font-family:var(--stencil);font-weight:400;font-size:1.6rem;color:var(--carimbo);margin-right:8px}
+.torre figcaption span{display:block;font-family:var(--corpo);font-size:1rem;color:var(--tinta2)}
+
+/* caixas de cor (luzes das torres) */
+.seletores{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:620px){.seletores{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.seletores label{display:flex;align-items:center;gap:10px;background:#fff;border:2px solid var(--linha);border-radius:4px;padding:8px 10px;min-width:0}
+.seletores b{font-family:var(--stencil);font-weight:400;font-size:1.9rem;line-height:1;color:var(--tinta);min-width:1ch}
+.seletores select{flex:1;min-width:0;font:700 1.15rem var(--corpo);padding:10px 6px;border-radius:4px;border:2px solid var(--tinta);cursor:pointer;color:#fff}
+.seletores select[data-v="0"]{background:var(--vermelho)}
+.seletores select[data-v="1"]{background:var(--amarelo);color:var(--tinta)}
+.seletores select[data-v="2"]{background:var(--verde)}
+/* botões de cor das torres: escolhido = cheio + borda grossa + ✓; os outros, apagados */
+.paleta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:620px){.paleta{grid-template-columns:1fr}}
+.torre-cor{margin:0;border:2px solid var(--linha);border-radius:4px;background:#fff;padding:8px 10px 10px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;min-width:0}
+.torre-cor legend{font-family:var(--stencil);font-size:1.35rem;padding:0 6px;color:var(--tinta)}
+.torre-cor input{position:absolute;opacity:0;width:1px;height:1px}
+.pastilha{display:flex;align-items:center;justify-content:center;gap:6px;min-height:52px;padding:6px 4px;border-radius:6px;cursor:pointer;
+  font:700 1.05rem var(--corpo);border:3px solid transparent;opacity:.32;filter:saturate(.6);text-align:center}
+.pastilha[data-v="0"]{background:var(--vermelho);color:#fff}
+.pastilha[data-v="1"]{background:var(--amarelo);color:var(--tinta)}
+.pastilha[data-v="2"]{background:var(--verde);color:#fff}
+.torre-cor input:checked + .pastilha{opacity:1;filter:none;border-color:var(--tinta);box-shadow:0 0 0 2px #fff inset,0 3px 0 var(--tinta);transform:translateY(-2px)}
+.torre-cor input:checked + .pastilha::before{content:"✓";font-size:1.3rem;line-height:1}
+@media (max-width:460px){.pastilha{flex-direction:column;gap:0;font-size:1rem;min-height:60px}}
+.torre-cor input:focus-visible + .pastilha{outline:3px dashed var(--tinta);outline-offset:3px}
+.pastilha:hover{opacity:.7}
+.torre-cor input:checked + .pastilha:hover{opacity:1}
+/* a lista aberta herda o fundo da caixa; cada opção leva a própria cor */
+.seletores option{font-weight:700}
+.seletores option[value="0"]{background:var(--vermelho);color:#fff}
+.seletores option[value="1"]{background:var(--amarelo);color:var(--tinta)}
+.seletores option[value="2"]{background:var(--verde);color:#fff}
+.seletores select:focus-visible,.decod select:focus-visible{outline:3px solid var(--azul);outline-offset:2px}
+.resposta{background:#fff;border:3px solid var(--tinta);border-radius:4px;padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+.resposta .tit{font-family:var(--stencil);font-size:1.6rem}
+.apertos{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.aperto{font:700 1.3rem var(--corpo);background:var(--marca);color:var(--tinta);border:3px solid var(--tinta);border-radius:4px;padding:10px 16px;cursor:pointer}
+.aperto[data-feito="1"]{opacity:.35;text-decoration:line-through}
+.aperto:focus-visible,.limpar:focus-visible{outline:3px solid var(--azul);outline-offset:2px}
+.seta{font-size:1.4rem;color:var(--tinta2)}
+.pausa{font-family:var(--maquina);font-size:.95rem;color:var(--carimbo);border:2px dashed var(--carimbo);border-radius:4px;padding:4px 8px}
+.limpar{align-self:flex-start;font:700 1rem var(--corpo);background:transparent;color:var(--tinta2);border:2px solid var(--linha);border-radius:4px;padding:8px 14px;cursor:pointer}
+.ruim{color:var(--carimbo)}
+.cores-ciclo{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-weight:700}
+.cor{padding:2px 12px;border-radius:4px;color:#fff}
+.cor.v{background:var(--vermelho)} .cor.a{background:var(--amarelo);color:var(--tinta)} .cor.g{background:var(--verde)} .cor.z{background:var(--azul)}
+
+/* decodificador */
+.decod{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:760px){.decod{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.decod label{display:flex;flex-direction:column;align-items:center;gap:8px;background:#fff;border:2px solid var(--linha);border-radius:4px;padding:12px 8px;min-width:0;text-align:center}
+.decod .pos{font-family:var(--maquina);font-size:.95rem;color:var(--tinta2)}
+.decod svg{width:56px;height:56px;stroke:var(--tinta);stroke-width:3.2;fill:none;stroke-linecap:square;stroke-linejoin:miter}
+.decod svg .cheio{fill:var(--tinta);stroke:none}
+.decod .nome{font-size:.95rem;font-weight:700}
+.decod select{width:100%;font:700 1.15rem var(--corpo);padding:8px 4px;border:2px solid var(--tinta);border-radius:4px;background:#fff8e6;color:var(--tinta);cursor:pointer}
+.duas{display:grid;grid-template-columns:1.4fr 1fr;gap:24px;align-items:start}
+@media (max-width:760px){.duas{grid-template-columns:1fr}}
+
+/* fontes */
+.fontes{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.fontes li{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;border-bottom:1px dashed var(--linha);padding-bottom:10px}
+.fontes li b{min-width:12ch}
+.rodape{color:var(--tinta2);font-size:1rem}
+
+dialog{border:none;padding:0;background:transparent;max-width:min(96vw,1400px)}
+dialog::backdrop{background:rgba(10,12,10,.85)}
+dialog img{display:block;max-width:100%;max-height:86vh;border:10px solid #fff}
+dialog button{margin-top:10px;font:700 1.1rem var(--corpo);background:var(--papel);color:var(--tinta);border:2px solid var(--tinta);border-radius:4px;padding:8px 18px;cursor:pointer}
+@media (prefers-reduced-motion:no-preference){.alvo,.aperto{transition:background .15s,opacity .15s}}
+.cp{display:inline-flex;align-items:center;gap:4px;margin-left:6px;padding:2px 6px;
+    font:700 14px/1.4 "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--tinta2);background:transparent;
+    border:1px solid var(--tinta2);border-radius:0;cursor:pointer;vertical-align:1px}
+.cp:hover{color:var(--carimbo);border-color:var(--carimbo)}
+.cp:focus-visible{outline:2px solid var(--carimbo);outline-offset:2px}
+.cp[data-feito="1"]{color:var(--verde);border-color:var(--verde)}
+.cp-manual{display:block;width:100%;margin-top:8px;padding:8px 10px;resize:vertical;
+    font:400 13px/1.4 "IBM Plex Mono",ui-monospace,monospace;
+    color:var(--tinta);background:#fff;border:1px solid var(--carimbo)}
+.voltar{max-width:1080px;margin:0 auto 34px;font-family:var(--maquina)}
+.voltar a{color:var(--papel)}
+</style>
+</head>
+<body>
+<p class="voltar"><a href="../">← Arquivo XPirados</a></p>
+
+<div class="pasta">
+
+  <!-- CAPA -->
+  <section class="folha capa">
+    <div>
+      <span class="rotulo">Battlefield 6 · mapa Area 51 · easter egg</span>
+      <h1>Operação OVNI</h1>
+      <p class="curto" style="margin-top:12px;font-size:1.2rem;max-width:44ch">O caminho inteiro para derrubar o OVNI e ganhar o enfeite de arma. Primeiro o resumo; cada etapa abre o detalhe quando você precisar.</p>
+      <div class="linha-meta">
+        <span class="maquina">Solução: <b>DANNYonPC</b> e a comunidade Battlefield Easter Eggs</span>
+      </div>
+    </div>
+    <div class="carimbos" aria-hidden="true">
+      <span class="carimbo grande">Desclassificado</span>
+      <span class="carimbo ok">Testado em 15/10/2026: funcionou</span>
+    </div>
+  </section>
+
+  <!-- RESUMO -->
+  <section class="folha resumo" aria-labelledby="t-resumo">
+    <span class="rotulo">Ficha-resumo</span>
+    <h2 id="t-resumo">Seis etapas</h2>
+    <ol>
+      <li><a href="#e1">Ache os 8 botões nas torres de rádio<span>Mapa com os pontos e a foto de cada botão.</span></a></li>
+      <li><a href="#e2">Deixe as 8 luzes verdes<span>Anote as cores na página e ela diz o que apertar.</span></a></li>
+      <li><a href="#e3">Entre pela porta pequena no subsolo da bandeira F<span>Ela abre quando as luzes ficam azuis.</span></a></li>
+      <li><a href="#e4">Ligue as telas da sala de comando<span>Na máquina da frente, à direita.</span></a></li>
+      <li><a href="#e5">Leia o código nos 8 consoles<span>Marque as luzes brancas de cada um e a página monta a sequência.</span></a></li>
+      <li><a href="#e6">Aperte as torres na ordem e pegue o enfeite<span>Um aperto por número; pausa quando a torre se repete.</span></a></li>
+    </ol>
+  </section>
+
+  <!-- ETAPA 1 -->
+  <section class="folha etapa" id="e1" aria-labelledby="t-e1">
+    <div class="cab"><span class="num">1</span><h2 id="t-e1">Ache os 8 botões</h2></div>
+    <p class="curto">Cada torre de rádio tem um botão com luz, na torre, ao lado ou atrás dela. Toque num círculo do mapa para ver a foto daquele botão.</p>
+    <div class="mapa">
+      <figure class="foto giro-b quadro">
+        <div class="quadro">
+          <img src="img/mapa.jpg" alt="Mapa da Area 51 com as torres 1 a 8 e a porta perto da bandeira F">
+          <a class="alvo" href="#t1" style="left:78.6%;top:56.3%" aria-label="Torre 1"></a>
+          <a class="alvo" href="#t2" style="left:56.6%;top:90.4%" aria-label="Torre 2"></a>
+          <a class="alvo" href="#t3" style="left:39.4%;top:52.0%" aria-label="Torre 3"></a>
+          <a class="alvo" href="#t4" style="left:42.6%;top:27.2%" aria-label="Torre 4"></a>
+          <a class="alvo" href="#t5" style="left:17.6%;top:34.0%" aria-label="Torre 5"></a>
+          <a class="alvo" href="#t6" style="left:38.1%;top:8.1%"  aria-label="Torre 6"></a>
+          <a class="alvo" href="#t7" style="left:50.2%;top:11.9%" aria-label="Torre 7"></a>
+          <a class="alvo" href="#t8" style="left:65.9%;top:14.9%" aria-label="Torre 8"></a>
+          <a class="alvo porta" href="#e3" style="left:53.2%;top:45.6%" aria-label="Porta do subsolo"></a>
+        </div>
+        <figcaption>Círculo azul: botão da torre. Círculo amarelo: a porta do subsolo, perto da F.</figcaption>
+      </figure>
+    </div>
+    <details>
+      <summary>Ver detalhe e as 8 fotos</summary>
+      <div class="detalhe">
+        <ul>
+          <li>O número da torre está pichado na lateral dela.</li>
+          <li>Não achou o botão? Ele está atrás de uma tampa: atire nela ou dê facada.</li>
+          <li>A luz do botão muda em roda: <span class="cores-ciclo"><span class="cor v">vermelho</span>→<span class="cor a">amarelo</span>→<span class="cor g">verde</span>→ vermelho de novo</span></li>
+        </ul>
+        <div class="torres">
+          <div class="torre" id="t1"><figure class="foto giro-a"><img src="img/t1.jpg" alt="Foto do botão 1"><figcaption><b>1</b>Leste<span>Logo à direita da bandeira H. Muro de concreto ao lado de uma porta de metal.</span></figcaption></figure></div>
+          <div class="torre" id="t2"><figure class="foto giro-b"><img src="img/t2.jpg" alt="Foto do botão 2"><figcaption><b>2</b>Sul<span>Abaixo da G, na borda de baixo do mapa. Muro baixo embaixo da torre.</span></figcaption></figure></div>
+          <div class="torre" id="t3"><figure class="foto giro-b"><img src="img/t3.jpg" alt="Foto do botão 3"><figcaption><b>3</b>Centro-oeste<span>Entre a A e a E, um pouco abaixo. Base de concreto da torre, com arbusto.</span></figcaption></figure></div>
+          <div class="torre" id="t4"><figure class="foto giro-a"><img src="img/t4.jpg" alt="Foto do botão 4"><figcaption><b>4</b>Norte, no meio<span>Entre a C e a D. Muro com pedras e arbusto na frente.</span></figcaption></figure></div>
+          <div class="torre" id="t5"><figure class="foto giro-a"><img src="img/t5.jpg" alt="Foto do botão 5"><figcaption><b>5</b>Oeste<span>Borda esquerda do mapa, acima da A. Muro encostado na rocha vermelha.</span></figcaption></figure></div>
+          <div class="torre" id="t6"><figure class="foto giro-b"><img src="img/t6.jpg" alt="Foto do botão 6"><figcaption><b>6</b>Norte<span>Acima e à esquerda da C. Mureta baixa com arbusto.</span></figcaption></figure></div>
+          <div class="torre" id="t7"><figure class="foto giro-b"><img src="img/t7.jpg" alt="Foto do botão 7"><figcaption><b>7</b>Norte<span>Acima e à direita da C. Muro com o prédio das antenas atrás.</span></figcaption></figure></div>
+          <div class="torre" id="t8"><figure class="foto giro-a"><img src="img/t8.jpg" alt="Foto do botão 8"><figcaption><b>8</b>Nordeste<span>À esquerda da I, um pouco acima. Muro ao lado da estrada, com cerca.</span></figcaption></figure></div>
+          <div class="torre"><figure class="foto giro-b"><img src="img/estados.jpg" alt="O botão de perto nas três cores"><figcaption><b>?</b>O botão de perto<span>Verde, amarelo e vermelho.</span></figcaption></figure></div>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ETAPA 2 -->
+  <section class="folha etapa" id="e2" aria-labelledby="t-e2">
+    <div class="cab"><span class="num">2</span><h2 id="t-e2">Deixe as 8 luzes verdes</h2></div>
+    <p class="curto">Toque na cor que cada torre está mostrando. A escolhida fica forte, com ✓. A página diz na hora quantas vezes apertar cada uma.</p>
+    <form class="paleta" id="form-cores">
+    </form>
+    <div class="resposta" id="resposta" aria-live="polite"></div>
+    <button type="button" class="limpar" id="limpar">Voltar ao exemplo</button>
+    <p class="rodape">As caixas vêm com as cores da nossa partida de 15/10/2026 como exemplo. Troque pelas cores da sua.</p>
+    <details>
+      <summary>Ver como funciona</summary>
+      <div class="detalhe">
+        <p>Apertar um botão muda <mark>três luzes</mark>: a da torre e as das duas vizinhas de número. Apertar a 3 muda a 2, a 3 e a 4. A conta dá a volta: apertar a 8 muda a 7, a 8 e a 1.</p>
+        <p>Por isso a ordem dos apertos não importa, só quantas vezes cada torre é apertada. A página testa todas as combinações e mostra a de menos apertos. Toque numa torre da lista quando terminar os apertos dela, para riscá-la.</p>
+        <p class="aviso">Se aparecer "não tem solução", alguma cor foi anotada errada. Confira as torres de novo: de cada três combinações de cor, duas não existem no jogo.</p>
+        <p>Quando as 8 ficam certas, as luzes passam a <span class="cor z">azul</span>.</p>
+        <p class="rodape">A regra dos três vizinhos vem da ferramenta da comunidade (link nas fontes). Conferi a conta desta página contra a dela nas 6.561 combinações de cor: as duas dão sempre a mesma resposta.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ETAPA 3 -->
+  <section class="folha etapa" id="e3" aria-labelledby="t-e3">
+    <div class="cab"><span class="num">3</span><h2 id="t-e3">A porta do subsolo</h2></div>
+    <p class="curto">Desça ao subsolo da bandeira F. O botão da <mark>porta pequena</mark> fica verde: interaja e desça a escada.</p>
+    <details>
+      <summary>Ver detalhe e foto</summary>
+      <div class="detalhe duas">
+        <figure class="foto giro-a"><img src="img/porta.jpg" alt="A porta pequena no subsolo da F"><figcaption>A porta certa.</figcaption></figure>
+        <ul>
+          <li>É a porta pequena. O portão grande, um pouco mais à frente, não serve.</li>
+          <li>O botão dela só fica verde depois que as 8 torres ficam azuis.</li>
+        </ul>
+      </div>
+    </details>
+  </section>
+
+  <!-- ETAPA 4 -->
+  <section class="folha etapa" id="e4" aria-labelledby="t-e4">
+    <div class="cab"><span class="num">4</span><h2 id="t-e4">Ligue as telas</h2></div>
+    <p class="curto">Na sala de comando, interaja com a máquina de rádio da frente, à direita. As telas grandes e os monitores dos consoles acendem.</p>
+    <details>
+      <summary>Ver detalhe e foto</summary>
+      <div class="detalhe duas">
+        <figure class="foto giro-b"><img src="img/sala.jpg" alt="A sala de comando"><figcaption>A sala de comando.</figcaption></figure>
+        <ul>
+          <li>A parede da frente tem as telas grandes com a <b>ordem dos símbolos</b> (próxima etapa).</li>
+          <li>Os consoles das mesas têm um monitor com um símbolo e, acima dele, um painel de luzes brancas.</li>
+        </ul>
+      </div>
+    </details>
+  </section>
+
+  <!-- ETAPA 5 -->
+  <section class="folha etapa" id="e5" aria-labelledby="t-e5">
+    <div class="cab"><span class="num">5</span><h2 id="t-e5">Leia o código</h2></div>
+    <p class="curto">Ache o console de cada símbolo e conte as <mark>barras brancas acesas</mark> no painel acima do monitor. Marque aqui: a página monta a sequência de torres.</p>
+    <form class="decod" id="form-decod">
+      <label for="luz1"><span class="pos">1º</span><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M21 7 A13 13 0 1 1 8 21"/></svg><span class="nome">Círculo vazado</span><select id="luz1"></select></label>
+      <label for="luz2"><span class="pos">2º</span><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 7 L34 32 H6 Z"/></svg><span class="nome">Triângulo vazado</span><select id="luz2"></select></label>
+      <label for="luz3"><span class="pos">3º</span><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M30 15 V8 H9 V32 H31"/></svg><span class="nome">Quadrado vazado</span><select id="luz3"></select></label>
+      <label for="luz4"><span class="pos">4º</span><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M24 7 L11 20 L24 33 M28 11 L31 14"/></svg><span class="nome">Losango vazado</span><select id="luz4"></select></label>
+      <label for="luz5"><span class="pos">5º</span><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M21 7 A13 13 0 1 1 8 21"/><circle class="cheio" cx="21" cy="21" r="8"/></svg><span class="nome">Círculo cheio</span><select id="luz5"></select></label>
+      <label for="luz6"><span class="pos">6º</span><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 6 L35 33 H5 Z"/><path class="cheio" d="M20 17 L27 29 H13 Z"/></svg><span class="nome">Triângulo cheio</span><select id="luz6"></select></label>
+      <label for="luz7"><span class="pos">7º</span><svg viewBox="0 0 40 40" aria-hidden="true"><path class="cheio" d="M8 8 H32 V24 L24 32 H8 Z"/></svg><span class="nome">Quadrado cheio</span><select id="luz7"></select></label>
+      <label for="luz8"><span class="pos">8º</span><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 5 L35 20 L20 35 L5 20 Z"/><path class="cheio" d="M20 13 L27 20 L20 27 L13 20 Z"/></svg><span class="nome">Losango cheio</span><select id="luz8"></select></label>
+    </form>
+    <div class="resposta" id="resposta-codigo" aria-live="polite"></div>
+    <details>
+      <summary>Ver como ler os consoles</summary>
+      <div class="detalhe">
+        <div class="duas">
+          <figure class="foto giro-a"><img src="img/sequencia.jpg" alt="Tela grande com a ordem dos símbolos 001 a 004"><figcaption>A tela grande dá a ordem: 001 a 004 vazados; a tela ao lado, 005 a 008 cheios.</figcaption></figure>
+          <figure class="foto giro-b"><img src="img/painel.jpg" alt="Painel de 8 barras brancas com 6 acesas"><figcaption>O painel: 8 barras em 2 fileiras. Aqui, 6 acesas = torre 6.</figcaption></figure>
+        </div>
+        <ol>
+          <li>A <b>ordem</b> vem da tela grande e é sempre a mesma: círculo, triângulo, quadrado e losango vazados; depois os mesmos quatro cheios.</li>
+          <li>Cada console da sala tem um desses símbolos no monitor.</li>
+          <li>Conte as <b>barras brancas acesas</b> no painel acima do monitor. O número de barras é o número da torre.</li>
+        </ol>
+        <p class="aviso">As luzes mudam a cada partida, então o código também muda. O do Danny foi 1-6-6-7-4-2-1-5; o nosso, em 15/10/2026, foi 3-4-3-4-4-6-1-4. As caixas acima vêm com o nosso como exemplo: troque pelas luzes da sua partida.</p>
+        <p class="rodape">Os consoles com o mesmo número acendem sempre as mesmas barras. Isso indica que o painel mostra um número de verdade, e não luzes ao acaso.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- ETAPA 6 -->
+  <section class="folha etapa" id="e6" aria-labelledby="t-e6">
+    <div class="cab"><span class="num">6</span><h2 id="t-e6">Aperte as torres e pegue o enfeite</h2></div>
+    <p class="curto">Volte às torres e aperte na ordem da etapa 5: <mark>um aperto por número</mark>. Quando a mesma torre vier duas vezes seguidas, espere uns 3 segundos entre os apertos.</p>
+    <details>
+      <summary>Ver detalhe e a recompensa</summary>
+      <div class="detalhe">
+        <ul>
+          <li>São 8 apertos no total. Uma torre que aparece várias vezes na sequência é apertada de novo na sua vez.</li>
+          <li>A pausa é para o jogo não contar dois apertos rápidos como um só. O Danny avisou da pausa sem dizer quanto tempo; os 3 segundos são uma estimativa.</li>
+          <li>Dá para fazer em grupo: o Danny fez com um amigo, num servidor público.</li>
+        </ul>
+        <h3>A recompensa</h3>
+        <ul>
+          <li>Um <b>enfeite de arma de OVNI</b>. Vem sozinho para quem participou: não tem código nem tela de resgate.</li>
+          <li>No vídeo do Danny, o OVNI aparece sobre o mapa e é derrubado.</li>
+        </ul>
+        <p class="aviso">Em 15/10/2026 o enfeite estava com erro e não dava para equipar. Segundo o Danny, quem fez a etapa deve recebê-lo mais tarde. A DICE ainda não confirmou isso.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- FONTES -->
+  <section class="folha" aria-labelledby="t-fontes">
+    <span class="rotulo">Fontes e créditos</span>
+    <h2 id="t-fontes" style="margin-bottom:16px">Quem resolveu</h2>
+    <ul class="fontes">
+      <li><b>Vídeo do Danny</b><a href="https://www.youtube.com/watch?v=kvGhz9WmdGM" target="_blank" rel="noopener" data-copiar>youtube.com/watch?v=kvGhz9WmdGM</a><span class="rodape">DANNYonPC, 14/10/2026. A explicação completa, em inglês.</span></li>
+      <li><b>Ferramenta das luzes</b><a href="https://jzee001.github.io/Area-51-Button-Solver" target="_blank" rel="noopener" data-copiar>jzee001.github.io/Area-51-Button-Solver</a><span class="rodape">Feita por JZee, da comunidade. A etapa 2 desta página faz a mesma conta.</span></li>
+      <li><b>Comunidade BFEE</b><span data-copiar="https://discord.gg/BFEE">discord.gg/BFEE</span><span class="rodape">Discord Battlefield Easter Eggs: o mapa e as fotos dos botões são deles.</span></li>
+      <li><b>MP1st</b><a href="https://mp1st.com/news/battlefield-6-area-51-map-has-a-ufo-easter-egg-theres-even-reward-tied-finding-it" target="_blank" rel="noopener" data-copiar>Matéria sobre o easter egg</a><span class="rodape">Guia escrito, em inglês.</span></li>
+      <li><b>Battlefield Bulletin</b><a href="https://x.com/BFBulletin/status/2110443073448607761" target="_blank" rel="noopener" data-copiar>Post no X</a><span class="rodape">Confirma o enfeite como recompensa.</span></li>
+    </ul>
+    <p class="rodape" style="margin-top:18px">As fotos do console, do painel e da tela de sequência são da nossa partida de 15/10/2026. Os textos de onde fica cada torre foram lidos do mapa da comunidade.</p>
+  </section>
+</div>
+
+<dialog id="zoom"><img id="zoom-img" alt=""><button id="fechar" type="button">Fechar</button></dialog>
+
+<script>
+/* Etapa 2. Regra (ferramenta da comunidade): apertar a torre i soma 1 na cor de i-1, i e i+1, em roda de 8.
+   Cor: 0 vermelho, 1 amarelo, 2 verde, mod 3. Soma comuta: só importa quantas vezes cada torre é apertada
+   (0, 1 ou 2). Testam-se as 3^8 = 6561 combinações e fica a de menos apertos. */
+function resolver(cores){
+  let melhor=null;
+  for(let n=0;n<6561;n++){
+    const x=[];let r=n,tot=0;
+    for(let i=0;i<8;i++){x.push(r%3);tot+=r%3;r=Math.floor(r/3);}
+    if(melhor&&tot>=melhor.tot)continue;
+    let ok=true;
+    for(let i=0;i<8&&ok;i++){ok=(cores[i]+x[(i+7)%8]+x[i]+x[(i+1)%8])%3===2;}
+    if(ok)melhor={x,tot};
+  }
+  return melhor;
+}
+/* Etapa 5. A sequência é o número de luzes de cada console, na ordem dos símbolos.
+   Devolve os grupos para desenhar, marcando pausa quando a torre se repete em seguida. */
+function montarSequencia(luzes){
+  return luzes.map((t,i)=>({torre:t,pausa:i>0&&luzes[i-1]===t}));
+}
+function ler(chave){try{return JSON.parse(localStorage.getItem(chave));}catch(e){return null;}}
+function gravar(chave,v){try{localStorage.setItem(chave,JSON.stringify(v));}catch(e){}}
+function botaoRiscar(texto){
+  const b=document.createElement("button");b.type="button";b.className="aperto";b.textContent=texto;
+  b.onclick=()=>{b.dataset.feito=b.dataset.feito==="1"?"0":"1";};return b;
+}
+(function(){
+  const nomes=["vermelho","amarelo","verde"];
+  const exemploCores=[2,2,0,0,1,1,0,1]; /* nossa partida de 15/10/2026 */
+  const form=document.getElementById("form-cores");
+  const resp=document.getElementById("resposta");
+  const salvo=ler("ovni-cores");
+  const cores=exemploCores.map((c,i)=>(Array.isArray(salvo)&&[0,1,2].includes(salvo[i]))?salvo[i]:c);
+  /* Três botões por torre (rádio): o escolhido fica cheio, com borda grossa e ✓; os outros, apagados.
+     Sem lista suspensa: a do sistema pinta a opção marcada de azul, e azul aqui é outra coisa. */
+  cores.forEach((c,i)=>{
+    const fs=document.createElement("fieldset");fs.className="torre-cor";
+    const lg=document.createElement("legend");lg.textContent=`Torre ${i+1}`;fs.appendChild(lg);
+    nomes.forEach((n,v)=>{
+      const id=`cor${i+1}-${v}`;
+      const inp=document.createElement("input");inp.type="radio";inp.name=`cor${i+1}`;inp.id=id;inp.value=v;inp.checked=v===c;
+      inp.addEventListener("change",()=>{cores[i]=v;atualiza();});
+      const lb=document.createElement("label");lb.htmlFor=id;lb.className="pastilha";lb.dataset.v=v;lb.textContent=n;
+      fs.append(inp,lb);
+    });
+    form.appendChild(fs);
+  });
+  form.addEventListener("submit",e=>e.preventDefault());
+  document.getElementById("limpar").onclick=()=>{
+    exemploCores.forEach((c,i)=>{cores[i]=c;document.getElementById(`cor${i+1}-${c}`).checked=true;});atualiza();};
+  function atualiza(){
+    gravar("ovni-cores",cores);
+    resp.innerHTML="";
+    const tit=document.createElement("div");tit.className="tit";resp.appendChild(tit);
+    if(cores.every(c=>c===2)){tit.textContent="Tudo verde. Pode ir para a porta.";return;}
+    const s=resolver(cores);
+    if(!s){tit.className="tit ruim";tit.textContent="Essa combinação não tem solução. Confira as cores anotadas.";return;}
+    tit.textContent=`Aperte ${s.tot} vezes:`;
+    const box=document.createElement("div");box.className="apertos";
+    s.x.forEach((q,i)=>{if(q)box.appendChild(botaoRiscar(`Torre ${i+1}: ${q===1?"1 vez":"2 vezes"}`));});
+    resp.appendChild(box);
+  }
+  atualiza();
+})();
+(function(){
+  const exemplo=[3,4,3,4,4,6,1,4]; /* nossa partida de 15/10/2026 */
+  const sels=[...Array(8)].map((_,i)=>document.getElementById("luz"+(i+1)));
+  const resp=document.getElementById("resposta-codigo");
+  const salvo=ler("ovni-luzes");
+  sels.forEach((s,i)=>{
+    for(let n=1;n<=8;n++){const o=document.createElement("option");o.value=n;o.textContent=`${n} ${n===1?"luz":"luzes"}`;s.appendChild(o);}
+    const v=Array.isArray(salvo)?salvo[i]:exemplo[i];
+    s.value=(v>=1&&v<=8)?v:exemplo[i];
+    s.addEventListener("change",atualiza);
+  });
+  document.getElementById("form-decod").addEventListener("submit",e=>e.preventDefault());
+  function atualiza(){
+    const luzes=sels.map(s=>Number(s.value));
+    gravar("ovni-luzes",luzes);
+    resp.innerHTML="";
+    const tit=document.createElement("div");tit.className="tit";tit.textContent="Aperte as torres nesta ordem:";resp.appendChild(tit);
+    const box=document.createElement("div");box.className="apertos";
+    montarSequencia(luzes).forEach((p,i)=>{
+      if(i>0){const s=document.createElement("span");s.className="seta";s.textContent="→";s.setAttribute("aria-hidden","true");box.appendChild(s);}
+      if(p.pausa){const z=document.createElement("span");z.className="pausa";z.textContent="espere 3 s";box.appendChild(z);}
+      box.appendChild(botaoRiscar(`${i+1}º · Torre ${p.torre}`));
+    });
+    resp.appendChild(box);
+  }
+  atualiza();
+})();
+(function(){
+  const d=document.getElementById("zoom"),zi=document.getElementById("zoom-img");
+  document.querySelectorAll(".foto img").forEach(im=>{
+    if(im.closest(".quadro .quadro"))return;
+    im.addEventListener("click",()=>{zi.src=im.src;zi.alt=im.alt;d.showModal();});
+  });
+  document.getElementById("fechar").onclick=()=>d.close();
+  d.addEventListener("click",e=>{if(e.target===d)d.close();});
+})();
+</script>
+<script>
+(function(){
+  function valor(alvo){
+    var de = alvo.getAttribute("data-copiar-de");
+    if(de){ var o = document.querySelector(de); return o ? ((o.innerText || o.textContent || "")).trim() : ""; }
+    var v = alvo.getAttribute("data-copiar");
+    if(v) return v;
+    return (alvo.getAttribute("href") || alvo.innerText || "").trim();
+  }
+  function manual(perto, txt){
+    var velho = perto.parentNode.querySelector(".cp-manual");
+    if(velho) velho.remove();
+    /* texto de varias linhas EXIGE textarea: um <input> engole as quebras, e o que a
+       pessoa cola volta tudo numa linha so [provado: campo de reserva do painel de
+       decisoes, com 3 linhas, colando grudado | 2026-09-03]. */
+    var muitas = txt.indexOf(String.fromCharCode(10)) >= 0;
+    var campo = document.createElement(muitas ? "textarea" : "input");
+    campo.className = "cp-manual"; campo.readOnly = true; campo.value = txt;
+    if(muitas) campo.rows = Math.min(10, txt.split(String.fromCharCode(10)).length + 1);
+    perto.parentNode.insertBefore(campo, perto.nextSibling);
+    campo.focus(); campo.setSelectionRange(0, txt.length);
+  }
+  function copia(btn, alvo){
+    var txt = valor(alvo);
+    if(!txt) return;
+    function ok(){
+      var antes = btn.textContent;
+      btn.textContent = "copiado"; btn.setAttribute("data-feito","1");
+      setTimeout(function(){ btn.textContent = antes; btn.removeAttribute("data-feito"); }, 1800);
+    }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(ok, function(){ manual(btn, txt); });
+    } else { manual(btn, txt); }
+  }
+  function botao(rotulo){
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "cp"; b.textContent = rotulo || "copiar";
+    return b;
+  }
+  function monta(){
+    document.querySelectorAll("[data-copiar]").forEach(function(alvo){
+      if(alvo.nextSibling && alvo.nextSibling.classList
+         && alvo.nextSibling.classList.contains("cp")) return;
+      var b = botao(alvo.getAttribute("data-copiar-rotulo"));
+      b.setAttribute("aria-label", "Copiar " + (alvo.innerText || "").trim().slice(0,50));
+      b.addEventListener("click", function(){ copia(b, alvo); });
+      alvo.parentNode.insertBefore(b, alvo.nextSibling);
+    });
+    document.querySelectorAll("[data-copiar-de]").forEach(function(b){
+      if(b.getAttribute("data-ligado")) return;
+      b.setAttribute("data-ligado","1");
+      b.addEventListener("click", function(){ copia(b, b); });
+    });
+  }
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", monta);
+  else monta();
+})();
+</script>
+</body>
+</html>
