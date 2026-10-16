@@ -119,14 +119,14 @@ summary:focus-visible{outline:3px solid var(--azul);outline-offset:3px}
 .torre-cor{margin:0;border:2px solid var(--linha);border-radius:4px;background:#fff;padding:8px 10px 10px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;min-width:0}
 .torre-cor legend{font-family:var(--stencil);font-size:1.35rem;padding:0 6px;color:var(--tinta)}
 .torre-cor input{position:absolute;opacity:0;width:1px;height:1px}
-.pastilha{display:flex;align-items:center;justify-content:center;gap:6px;min-height:52px;padding:6px 4px;border-radius:6px;cursor:pointer;
-  font:700 1.05rem var(--corpo);border:3px solid transparent;opacity:.32;filter:saturate(.6);text-align:center}
+.pastilha{display:flex;align-items:center;justify-content:center;gap:8px;min-height:64px;padding:6px 4px;border-radius:8px;cursor:pointer;
+  font:700 1.2rem var(--corpo);border:3px solid rgba(0,0,0,.18);opacity:.6;text-align:center}
 .pastilha[data-v="0"]{background:var(--vermelho);color:#fff}
 .pastilha[data-v="1"]{background:var(--amarelo);color:var(--tinta)}
 .pastilha[data-v="2"]{background:var(--verde);color:#fff}
-.torre-cor input:checked + .pastilha{opacity:1;filter:none;border-color:var(--tinta);box-shadow:0 0 0 2px #fff inset,0 3px 0 var(--tinta);transform:translateY(-2px)}
-.torre-cor input:checked + .pastilha::before{content:"✓";font-size:1.3rem;line-height:1}
-@media (max-width:460px){.pastilha{flex-direction:column;gap:0;font-size:1rem;min-height:60px}}
+.torre-cor input:checked + .pastilha{opacity:1;border:5px solid var(--tinta);box-shadow:0 0 0 3px #fff inset,0 5px 0 var(--tinta);transform:translateY(-3px);font-size:1.3rem}
+.torre-cor input:checked + .pastilha::before{content:"✓";font-size:1.7rem;line-height:1}
+@media (max-width:460px){.pastilha{flex-direction:column;gap:0;font-size:1.05rem;min-height:70px}.torre-cor input:checked + .pastilha{font-size:1.1rem}}
 .torre-cor input:focus-visible + .pastilha{outline:3px dashed var(--tinta);outline-offset:3px}
 .pastilha:hover{opacity:.7}
 .torre-cor input:checked + .pastilha:hover{opacity:1}
