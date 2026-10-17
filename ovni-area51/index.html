@@ -119,6 +119,8 @@ summary:focus-visible{outline:3px solid var(--azul);outline-offset:3px}
 .torre-cor{margin:0;border:2px solid var(--linha);border-radius:4px;background:#fff;padding:8px 10px 10px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;min-width:0}
 .torre-cor legend{font-family:var(--stencil);font-size:1.35rem;padding:0 6px;color:var(--tinta)}
 .torre-cor input{position:absolute;opacity:0;width:1px;height:1px}
+.torre-cor[data-ok="1"]{border-color:var(--verde);border-width:3px}
+.torre-cor[data-ok="1"] legend::after{content:"  ✓ conferida";font-family:var(--corpo);font-size:1rem;font-weight:700;color:var(--verde)}
 .pastilha{display:flex;align-items:center;justify-content:center;gap:8px;min-height:64px;padding:6px 4px;border-radius:8px;cursor:pointer;
   font:700 1.2rem var(--corpo);border:3px solid rgba(0,0,0,.18);opacity:.6;text-align:center}
 .pastilha[data-v="0"]{background:var(--vermelho);color:#fff}
@@ -286,8 +288,8 @@ dialog button{margin-top:10px;font:700 1.1rem var(--corpo);background:var(--pape
     <form class="paleta" id="form-cores">
     </form>
     <div class="resposta" id="resposta" aria-live="polite"></div>
-    <button type="button" class="limpar" id="limpar">Voltar ao exemplo</button>
-    <p class="rodape">As caixas vêm com as cores da nossa partida de 15/10/2026 como exemplo. Troque pelas cores da sua.</p>
+    <button type="button" class="limpar" id="limpar">Apagar tudo</button>
+    <p class="rodape">As torres começam apagadas. Toque na cor que a torre mostra para marcá-la como conferida; toque de novo na mesma cor para apagar.</p>
     <details>
       <summary>Ver como funciona</summary>
       <div class="detalhe">
@@ -433,11 +435,11 @@ function botaoRiscar(texto){
 }
 (function(){
   const nomes=["vermelho","amarelo","verde"];
-  const exemploCores=[2,2,0,0,1,1,0,1]; /* nossa partida de 15/10/2026 */
   const form=document.getElementById("form-cores");
   const resp=document.getElementById("resposta");
   const salvo=ler("ovni-cores");
-  const cores=exemploCores.map((c,i)=>(Array.isArray(salvo)&&[0,1,2].includes(salvo[i]))?salvo[i]:c);
+  /* Começa tudo apagado (null = torre ainda não conferida); clicar de novo na cor escolhida apaga. */
+  const cores=[0,1,2,3,4,5,6,7].map(i=>(Array.isArray(salvo)&&[0,1,2].includes(salvo[i]))?salvo[i]:null);
   /* Três botões por torre (rádio): o escolhido fica cheio, com borda grossa e ✓; os outros, apagados.
      Sem lista suspensa: a do sistema pinta a opção marcada de azul, e azul aqui é outra coisa. */
   cores.forEach((c,i)=>{
@@ -446,7 +448,9 @@ function botaoRiscar(texto){
     nomes.forEach((n,v)=>{
       const id=`cor${i+1}-${v}`;
       const inp=document.createElement("input");inp.type="radio";inp.name=`cor${i+1}`;inp.id=id;inp.value=v;inp.checked=v===c;
-      inp.addEventListener("change",()=>{cores[i]=v;atualiza();});
+      inp.addEventListener("click",()=>{
+        if(cores[i]===v){inp.checked=false;cores[i]=null;}else{cores[i]=v;}
+        atualiza();});
       const lb=document.createElement("label");lb.htmlFor=id;lb.className="pastilha";lb.dataset.v=v;lb.textContent=n;
       fs.append(inp,lb);
     });
@@ -454,11 +458,15 @@ function botaoRiscar(texto){
   });
   form.addEventListener("submit",e=>e.preventDefault());
   document.getElementById("limpar").onclick=()=>{
-    exemploCores.forEach((c,i)=>{cores[i]=c;document.getElementById(`cor${i+1}-${c}`).checked=true;});atualiza();};
+    form.querySelectorAll("input").forEach(x=>x.checked=false);cores.fill(null);atualiza();};
   function atualiza(){
     gravar("ovni-cores",cores);
+    form.querySelectorAll("fieldset").forEach((f,i)=>f.dataset.ok=cores[i]===null?"0":"1");
     resp.innerHTML="";
     const tit=document.createElement("div");tit.className="tit";resp.appendChild(tit);
+    const faltam=cores.map((c,i)=>c===null?i+1:0).filter(Boolean);
+    if(faltam.length){tit.textContent=faltam.length===8?"Marque a cor que cada torre está mostrando.":
+      (faltam.length===1?`Falta 1: torre ${faltam[0]}.`:`Faltam ${faltam.length}: torres ${faltam.join(", ")}.`);return;}
     if(cores.every(c=>c===2)){tit.textContent="Tudo verde. Pode ir para a porta.";return;}
     const s=resolver(cores);
     if(!s){tit.className="tit ruim";tit.textContent="Essa combinação não tem solução. Confira as cores anotadas.";return;}
