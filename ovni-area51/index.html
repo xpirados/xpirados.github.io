@@ -92,11 +92,10 @@ summary:focus-visible{outline:3px solid var(--azul);outline-offset:3px}
 .mapa{position:relative;margin-top:22px}
 .mapa .quadro{position:relative}
 .mapa img{cursor:default}
-.alvo{position:absolute;transform:translate(-50%,-50%);width:clamp(30px,4.6vw,52px);aspect-ratio:1;border-radius:50%;
-  border:3px solid #44e2f2;background:rgba(68,226,242,.15);box-shadow:0 0 0 3px rgba(0,0,0,.55)}
-.alvo.porta{border-color:#ffc23d;background:rgba(255,194,61,.2)}
-.alvo:hover,.alvo:focus-visible{background:rgba(68,226,242,.55);outline:none}
-.alvo.porta:hover,.alvo.porta:focus-visible{background:rgba(255,194,61,.6)}
+.alvo{position:absolute;transform:translate(-50%,-50%);min-width:clamp(26px,3.4vw,40px);height:clamp(26px,3.4vw,40px);padding:0 4px;border-radius:999px;border:3px solid #44e2f2;background:#0d1a20;color:#44e2f2;display:flex;align-items:center;justify-content:center;font:700 clamp(.85rem,1.6vw,1.25rem)/1 var(--corpo);text-decoration:none;box-shadow:0 0 0 2px rgba(0,0,0,.6)}
+.alvo.porta{border-color:#ffc23d;color:#ffc23d}
+.alvo:hover,.alvo:focus-visible{background:#44e2f2;color:#0d1a20;outline:none}
+.alvo.porta:hover,.alvo.porta:focus-visible{background:#ffc23d;color:#0d1a20}
 
 .torres{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:26px 22px}
 .torre{scroll-margin-top:16px}
@@ -244,17 +243,17 @@ dialog button{margin-top:10px;font:700 1.1rem var(--corpo);background:var(--pape
       <figure class="foto giro-b quadro">
         <div class="quadro">
           <img src="img/mapa.jpg" alt="Mapa da Area 51 com as torres 1 a 8 e a porta perto da bandeira F">
-          <a class="alvo" href="#t1" style="left:78.6%;top:56.3%" aria-label="Torre 1"></a>
-          <a class="alvo" href="#t2" style="left:56.6%;top:90.4%" aria-label="Torre 2"></a>
-          <a class="alvo" href="#t3" style="left:39.4%;top:52.0%" aria-label="Torre 3"></a>
-          <a class="alvo" href="#t4" style="left:42.6%;top:27.2%" aria-label="Torre 4"></a>
-          <a class="alvo" href="#t5" style="left:17.6%;top:34.0%" aria-label="Torre 5"></a>
-          <a class="alvo" href="#t6" style="left:38.1%;top:8.1%"  aria-label="Torre 6"></a>
-          <a class="alvo" href="#t7" style="left:50.2%;top:11.9%" aria-label="Torre 7"></a>
-          <a class="alvo" href="#t8" style="left:65.9%;top:14.9%" aria-label="Torre 8"></a>
-          <a class="alvo porta" href="#e3" style="left:53.2%;top:45.6%" aria-label="Porta do subsolo"></a>
+          <a class="alvo" href="#t1" style="left:78.6%;top:56.3%" aria-label="Torre 1">1</a>
+          <a class="alvo" href="#t2" style="left:56.6%;top:90.4%" aria-label="Torre 2">2</a>
+          <a class="alvo" href="#t3" style="left:39.4%;top:52.0%" aria-label="Torre 3">3</a>
+          <a class="alvo" href="#t4" style="left:42.6%;top:27.2%" aria-label="Torre 4">4</a>
+          <a class="alvo" href="#t5" style="left:17.6%;top:34.0%" aria-label="Torre 5">5</a>
+          <a class="alvo" href="#t6" style="left:38.1%;top:8.1%"  aria-label="Torre 6">6</a>
+          <a class="alvo" href="#t7" style="left:50.2%;top:11.9%" aria-label="Torre 7">7</a>
+          <a class="alvo" href="#t8" style="left:65.9%;top:14.9%" aria-label="Torre 8">8</a>
+          <a class="alvo porta" href="#e3" style="left:53.2%;top:45.6%" aria-label="Porta do subsolo">P</a>
         </div>
-        <figcaption>Círculo azul: botão da torre. Círculo amarelo: a porta do subsolo, perto da F.</figcaption>
+        <figcaption>Círculo azul com número: o botão daquela torre. Círculo amarelo P: a porta do subsolo, perto da F.</figcaption>
       </figure>
     </div>
     <details>
