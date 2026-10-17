@@ -171,6 +171,15 @@ summary:focus-visible{outline:3px solid var(--azul);outline-offset:3px}
 .codigo{font-family:var(--stencil);font-size:2rem;letter-spacing:.08em;color:var(--tinta);background:#fff;border:2px solid var(--tinta);border-radius:4px;padding:2px 12px}
 
 
+
+/* partes retráteis */
+.barra-dobrar{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end}
+.barra-dobrar button{font:700 1rem var(--corpo);background:var(--papel);color:var(--tinta);border:2px solid var(--tinta);border-radius:4px;padding:8px 14px;cursor:pointer}
+.gatilho{cursor:pointer;user-select:none}
+.gatilho:focus-visible{outline:3px solid var(--azul);outline-offset:4px}
+.seta-dobra{margin-left:auto;font-family:var(--corpo);font-size:1.1rem;font-weight:700;color:var(--tinta2);border:2px solid var(--linha);border-radius:4px;padding:4px 12px;white-space:nowrap;align-self:center}
+.dobrada .corpo-dobra{display:none}
+.dobrada{padding-block:clamp(12px,2vw,20px)}
 dialog{border:none;padding:0;background:transparent;max-width:min(96vw,1400px)}
 dialog::backdrop{background:rgba(10,12,10,.85)}
 dialog img{display:block;max-width:100%;max-height:86vh;border:10px solid #fff}
@@ -194,6 +203,7 @@ dialog button{margin-top:10px;font:700 1.1rem var(--corpo);background:var(--pape
 <p class="voltar"><a href="../">← Arquivo XPirados</a></p>
 
 <div class="pasta">
+  <div class="barra-dobrar"><button type="button" id="abrir-tudo">Abrir tudo</button><button type="button" id="fechar-tudo">Fechar tudo</button></div>
 
   <!-- CAPA -->
   <section class="folha capa">
@@ -403,6 +413,36 @@ dialog button{margin-top:10px;font:700 1.1rem var(--corpo);background:var(--pape
   </section>
 </div>
 
+<script>
+/* Cada folha (menos a capa) abre e fecha pelo título; o estado fica guardado no navegador. */
+(function(){
+  const folhas=[...document.querySelectorAll('.pasta > section.folha')].filter(s=>!s.classList.contains('capa'));
+  let est={};try{est=JSON.parse(localStorage.getItem('ovni-dobras'))||{}}catch(e){}
+  const salvar=()=>{try{localStorage.setItem('ovni-dobras',JSON.stringify(est))}catch(e){}};
+  folhas.forEach((s,k)=>{
+    const id=s.id||('parte'+k);
+    const gat=s.querySelector(':scope > .cab')||s.querySelector(':scope > h2');
+    const corpo=document.createElement('div');corpo.className='corpo-dobra';
+    let n=gat.nextSibling;while(n){const prox=n.nextSibling;corpo.appendChild(n);n=prox}
+    s.appendChild(corpo);
+    if(gat.tagName==='H2'){const w=document.createElement('div');w.className='cab';w.style.display='flex';w.style.gap='16px';w.style.alignItems='baseline';gat.replaceWith(w);w.appendChild(gat)}
+    const g=s.querySelector(':scope > .cab');g.classList.add('gatilho');g.tabIndex=0;g.setAttribute('role','button');
+    const seta=document.createElement('span');seta.className='seta-dobra';g.appendChild(seta);
+    const pinta=()=>{const f=s.classList.contains('dobrada');seta.textContent=f?'abrir ▾':'fechar ▴';g.setAttribute('aria-expanded',String(!f))};
+    s.dobrar=(f)=>{s.classList.toggle('dobrada',f);est[id]=f;salvar();pinta()};
+    if(est[id])s.classList.add('dobrada');pinta();
+    g.addEventListener('click',()=>s.dobrar(!s.classList.contains('dobrada')));
+    g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();g.click()}});
+  });
+  document.getElementById('abrir-tudo').onclick=()=>folhas.forEach(s=>s.dobrar(false));
+  document.getElementById('fechar-tudo').onclick=()=>folhas.forEach(s=>s.dobrar(true));
+  /* link para dentro de uma parte fechada (resumo, círculos do mapa) abre a parte e o detalhe */
+  const abrirAlvo=()=>{const a=location.hash&&document.querySelector(location.hash);if(!a)return;
+    const s=a.closest('section.folha');if(s&&s.dobrar&&s.classList.contains('dobrada'))s.dobrar(false);
+    const d=a.closest('details');if(d)d.open=true;a.scrollIntoView({block:'start'})};
+  window.addEventListener('hashchange',abrirAlvo);abrirAlvo();
+})();
+</script>
 <dialog id="zoom"><img id="zoom-img" alt=""><button id="fechar" type="button">Fechar</button></dialog>
 
 <script>
