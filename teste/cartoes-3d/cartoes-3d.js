@@ -120,6 +120,8 @@ function criarGestor(opcoes){
         i.arrasto=null;agendar();
       });
       ouvir(cv,'pointercancel',()=>{i.arrasto=null;i.ativo=i.toque=false;agendar();});
+      // O cartão é um link: sem isto o navegador arrasta o link e cancela o giro logo no começo.
+      ouvir(cartao,'dragstart',e=>{if(i.arrasto)e.preventDefault();});
       // Explorar o desenho não navega o link que envolve o cartão; título/texto continuam links.
       ouvir(cv,'click',e=>{if(cv.dataset.pronto3d){e.preventDefault();e.stopImmediatePropagation();}},{capture:true});
       ouvir(cv,'wheel',e=>{if(!i.ativo||!e.ctrlKey)return;e.preventDefault();i.zoom=Math.max(.72,Math.min(1.4,i.zoom-e.deltaY*.001));agendar();},{passive:false});
