@@ -1,0 +1,321 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style></head><body><!-- sem-copia: prévia da página de alistamento para o dono avaliar -->
+<title>XPirados, alistamento</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Allerta+Stencil&family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* A página do alistamento: separada da principal, para servir às duas portas. Quem vem do site responde e recebe
+   um convite que vence; quem já entrou no Discord é mandado para cá, entra com a conta e recebe os cargos.
+   As perguntas e as opções são as mesmas do questionário do Discord, para cada resposta continuar virando o mesmo cargo.
+   Feita para o celular primeiro: uma coluna, alvos grandes de toque, nada que dependa de mouse. */
+:root{
+  --noite:#0f1113; --concreto:#17191b; --concreto2:#1f2225; --linha:#33373b;
+  --poeira:#efe9dd; --poeira2:#bdb6a8; --sinal:#ff8a3d; --sinal2:#ffb27a; --aviso:#f2c14e; --erro:#ff7a6b;
+  --gigante:"Black Ops One","Allerta Stencil",Impact,sans-serif;
+  --display:"Allerta Stencil","Arial Narrow",Impact,sans-serif;
+  --texto:"Atkinson Hyperlegible","Segoe UI",Verdana,sans-serif;
+  --mono:"IBM Plex Mono",Consolas,"Courier New",monospace;
+  color-scheme:dark;
+}
+html{background:var(--noite);-webkit-tap-highlight-color:transparent}
+body{background:var(--noite);color:var(--poeira);font-family:var(--texto);font-size:19px;line-height:1.55;overflow-x:hidden}
+#mapa,#ceu{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
+#mapa{z-index:0} #ceu{z-index:40}
+.casca{position:relative;z-index:1;max-width:720px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 120px;display:grid;gap:18px}
+.topo{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.marca{display:flex;align-items:center;gap:10px;font-family:var(--display);letter-spacing:.14em;color:var(--poeira);text-decoration:none}
+.marca img{width:34px;height:34px}
+.linguas{margin-left:auto;display:flex;gap:6px}
+.linguas button{font-family:var(--mono);font-size:.78rem;letter-spacing:.1em;background:transparent;color:var(--poeira2);border:1px solid var(--linha);padding:8px 10px;min-width:44px;min-height:40px;cursor:pointer}
+.linguas button[aria-pressed="true"]{color:var(--sinal);border-color:var(--sinal)}
+.previa{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-family:var(--mono);font-size:.75rem;color:var(--aviso);border:1px dashed var(--aviso);padding:8px 10px}
+.previa button{font:inherit;color:var(--aviso);background:transparent;border:1px solid var(--aviso);padding:6px 10px;cursor:pointer;min-height:36px}
+.previa button[aria-pressed="true"]{background:var(--aviso);color:#111}
+h1{font-family:var(--gigante);font-weight:400;font-size:clamp(2.2rem,9vw,3.6rem);line-height:.95;margin:6px 0 0;text-wrap:balance}
+.intro{color:var(--poeira2);margin:0;max-width:56ch}
+.rotulo{font-family:var(--mono);font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--sinal)}
+.progresso{position:sticky;top:0;z-index:5;padding-block:10px;background:linear-gradient(var(--noite) 70%,transparent)}
+.barra{height:4px;background:var(--linha)}
+.barra i{display:block;height:100%;width:0;background:var(--sinal);box-shadow:0 0 10px var(--sinal);transition:width .3s}
+.progresso span{display:block;font-family:var(--mono);font-size:.75rem;color:var(--poeira2);margin-top:6px}
+.cartao{background:rgba(23,25,27,.94);border:1px solid var(--linha);padding:18px;display:grid;gap:12px}
+.cartao.feito{border-color:rgba(255,138,61,.55)}
+.cartao h2{font-family:var(--display);font-weight:400;font-size:1.3rem;margin:0;line-height:1.2}
+.cartao .dica{font-size:.85rem;color:var(--poeira2)}
+.opcoes{display:flex;flex-wrap:wrap;gap:8px}
+.opcoes button{font:inherit;font-size:1rem;background:var(--concreto2);color:var(--poeira);border:1px solid var(--linha);padding:10px 14px;min-height:46px;cursor:pointer;text-align:left;transition:border-color .15s,background .15s}
+.opcoes button:hover{border-color:var(--poeira2)}
+.opcoes button[aria-pressed="true"]{background:rgba(255,138,61,.16);border-color:var(--sinal);color:var(--sinal2)}
+.opcoes button[aria-pressed="true"]::before{content:"✓ ";color:var(--sinal)}
+input[type=text]{font:inherit;font-size:1.05rem;background:#0c0e10;color:var(--poeira);border:1px solid var(--linha);padding:12px;width:100%;box-sizing:border-box;min-height:48px}
+.entrar-discord{display:flex;align-items:center;justify-content:center;gap:10px;font:inherit;font-weight:700;background:#5865f2;color:#fff;border:0;padding:14px 18px;min-height:52px;cursor:pointer}
+.entrar-discord[aria-pressed="true"]{background:#2d3a1f;color:#b8e0a0}
+.enviar{font-family:var(--display);font-size:1.15rem;letter-spacing:.08em;color:#17191b;background:var(--sinal);border:0;padding:16px 22px;min-height:56px;cursor:pointer}
+.enviar:disabled{background:var(--linha);color:var(--poeira2);cursor:not-allowed}
+.falta{font-size:.9rem;color:var(--erro);min-height:1.2em}
+.convite{border:1px solid var(--sinal);background:rgba(30,20,14,.96);padding:20px;display:grid;gap:12px}
+.relogio{display:flex;gap:14px;font-family:var(--gigante);font-size:clamp(2rem,10vw,2.8rem);font-variant-numeric:tabular-nums}
+.relogio small{display:block;font-family:var(--mono);font-size:.7rem;color:var(--poeira2);letter-spacing:.12em}
+.convite a{display:block;text-align:center;font-family:var(--display);font-size:1.1rem;letter-spacing:.08em;color:#17191b;background:var(--sinal);padding:16px;text-decoration:none}
+.resumo{font-family:var(--mono);font-size:.8rem;color:var(--poeira2);display:grid;gap:4px}
+.cartao-convite{padding:0;overflow:hidden;gap:0}
+.cartao-convite .capa{position:relative;height:clamp(110px,28vw,170px);background:#000}
+.cartao-convite .capa img:first-child{width:100%;height:100%;object-fit:cover;filter:brightness(.8)}
+.cartao-convite .escudo{position:absolute;left:20px;bottom:-34px;width:76px;height:76px;border-radius:18px;border:4px solid #1e140e;background:#0f1113}
+.miolo-convite{padding:44px 20px 20px;display:grid;gap:10px}
+.servidor{font-family:var(--gigante);font-weight:400;font-size:1.8rem;line-height:1}
+.online{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:.82rem;color:var(--poeira2)}
+.online i{width:9px;height:9px;border-radius:50%;background:#43b581}
+#outro-jogo{margin-top:4px}
+:focus-visible{outline:3px solid var(--sinal);outline-offset:3px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<canvas id="mapa" aria-hidden="true"></canvas>
+<canvas id="ceu" aria-hidden="true"></canvas>
+
+<main class="casca">
+  <div class="topo">
+    <a class="marca" href="index.html"><img src="img/xpirados.png" alt="">XPIRADOS</a>
+    <div class="linguas" role="group" aria-label="Idioma da página">
+      <button type="button" data-lingua="pt" aria-pressed="true">PT</button><button type="button" data-lingua="es" aria-pressed="false">ES</button><button type="button" data-lingua="en" aria-pressed="false">EN</button>
+    </div>
+  </div>
+  <div class="previa"><span data-t="previa">Prévia: veio de onde?</span><button type="button" data-origem="site" aria-pressed="true" data-t="doSite">Do site</button><button type="button" data-origem="discord" aria-pressed="false" data-t="doDiscord">Do Discord</button></div>
+
+  <div><p class="rotulo" data-t="rotulo">Operação XPirados · alistamento</p><h1 data-t="titulo">Solicitar alistamento</h1></div>
+  <p class="intro" data-t="intro"></p>
+
+  <div class="progresso" aria-live="polite"><div class="barra"><i id="barra"></i></div><span id="contagem"></span></div>
+
+  <section class="cartao" id="q-discord" hidden><h2 data-t="qDiscord"></h2><p class="dica" data-t="dDiscord"></p>
+    <button type="button" class="entrar-discord" id="entrar-discord" aria-pressed="false"><span data-t="bDiscord"></span></button></section>
+  <section class="cartao" id="q-nome"><h2 data-t="qNome"></h2><input type="text" id="nome" autocomplete="off" data-ph="phNome"></section>
+  <div id="perguntas"></div>
+
+  <p class="falta" id="falta"></p>
+  <button type="button" class="enviar" id="enviar" disabled></button>
+  <p class="previa" style="border-style:dashed" data-t="nadaSai"></p>
+
+  <section class="convite cartao-convite" id="fim-site" hidden>
+    <div class="capa"><img src="img/banner-c.jpg" alt=""><img class="escudo" src="img/xpirados.png" alt=""></div>
+    <div class="miolo-convite">
+      <span class="rotulo" data-t="fimSite"></span>
+      <b class="servidor">XPirados</b>
+      <span class="online"><i></i><span data-t="online"></span></span>
+      <b id="fim-nome"></b>
+      <div class="relogio" id="relogio"></div>
+      <a href="#" id="embarcar" target="_blank" rel="noopener" data-t="embarcar"></a>
+      <p class="previa" data-t="previaConvite"></p>
+      <div class="resumo" id="resumo"></div>
+    </div>
+  </section>
+  <section class="convite" id="fim-discord" hidden>
+    <span class="rotulo" data-t="fimDiscord"></span><b data-t="fimDiscordTexto"></b>
+    <a href="#" id="voltar" data-t="voltar"></a>
+    <div class="resumo" id="resumo2"></div>
+  </section>
+</main>
+
+<script>
+(function(){
+  var reduz = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ===================== textos nos três idiomas ===================== */
+  var T = {
+    pt: {previa: "Prévia: veio de onde?", doSite: "Do site", doDiscord: "Do Discord", rotulo: "Operação XPirados · alistamento", titulo: "Solicitar alistamento",
+      intro: "Responda em um minuto. As respostas viram os seus cargos no servidor e ajudam a achar gente que joga como você.",
+      qDiscord: "Entre com a sua conta do Discord", dDiscord: "Assim o servidor sabe a quem dar os cargos.", bDiscord: "Entrar com o Discord", bDiscordOk: "Conta conferida",
+      qOutro: "Qual jogo?", qNome: "Seu nome no Discord", phNome: "ex.: soldado_123", varias: "Pode marcar mais de uma.", opcional: "Opcional: pode deixar em branco.",
+      contagem: "{n} de {t} respondidas", enviarSite: "Gerar meu convite", enviarDiscord: "Enviar respostas", falta: "Falta responder: {q}",
+      nadaSai: "Prévia: nada é enviado e nenhum convite é criado.",
+      fimSite: "Extração confirmada · convite pessoal", fimNome: "Convite de {n}: vale para uma entrada e vence em", embarcar: "Embarcar: abrir o convite no Discord", online: "60 online · 207 membros",
+      previaConvite: "Prévia: no site, este botão abre o convite que a Lis cria na hora, de uso único e com 10 minutos de validade. No celular ele abre o aplicativo do Discord; no computador, a página do convite.",
+      fimDiscord: "Alistamento recebido", fimDiscordTexto: "Pronto. Seus cargos chegam em instantes, e um moderador vai receber você.", voltar: "Voltar ao Discord",
+      horas: "HORAS", min: "MIN", seg: "SEG"},
+    es: {previa: "Vista previa: ¿de dónde vino?", doSite: "Del sitio", doDiscord: "De Discord", rotulo: "Operación XPirados · alistamiento", titulo: "Solicitar alistamiento",
+      intro: "Responde en un minuto. Tus respuestas se convierten en tus roles en el servidor y ayudan a encontrar gente que juega como tú.",
+      qDiscord: "Entra con tu cuenta de Discord", dDiscord: "Así el servidor sabe a quién darle los roles.", bDiscord: "Entrar con Discord", bDiscordOk: "Cuenta verificada",
+      qOutro: "¿Qué juego?", qNome: "Tu nombre en Discord", phNome: "ej.: soldado_123", varias: "Puedes marcar más de una.", opcional: "Opcional: puedes dejarlo en blanco.",
+      contagem: "{n} de {t} respondidas", enviarSite: "Generar mi invitación", enviarDiscord: "Enviar respuestas", falta: "Falta responder: {q}",
+      nadaSai: "Vista previa: no se envía nada y no se crea ninguna invitación.",
+      fimSite: "Extracción confirmada · invitación personal", fimNome: "Invitación de {n}: vale para una entrada y vence en", embarcar: "Embarcar: abrir la invitación en Discord", online: "60 en línea · 207 miembros",
+      previaConvite: "Vista previa: en el sitio, este botón abre la invitación que Lis crea al momento, de un solo uso y válida por 10 minutos. En el celular abre la app de Discord; en la computadora, la página de la invitación.",
+      fimDiscord: "Alistamiento recibido", fimDiscordTexto: "Listo. Tus roles llegan en un momento, y un moderador te recibirá.", voltar: "Volver a Discord",
+      horas: "HORAS", min: "MIN", seg: "SEG"},
+    en: {previa: "Preview: where did they come from?", doSite: "From the site", doDiscord: "From Discord", rotulo: "Operation XPirados · enlistment", titulo: "Request to enlist",
+      intro: "Answer in a minute. Your answers become your roles on the server and help you find people who play like you.",
+      qDiscord: "Sign in with your Discord account", dDiscord: "That way the server knows who gets the roles.", bDiscord: "Sign in with Discord", bDiscordOk: "Account checked",
+      qOutro: "Which game?", qNome: "Your Discord name", phNome: "e.g. soldier_123", varias: "You can pick more than one.", opcional: "Optional: you can leave it blank.",
+      contagem: "{n} of {t} answered", enviarSite: "Get my invite", enviarDiscord: "Send answers", falta: "Still missing: {q}",
+      nadaSai: "Preview: nothing is sent and no invite is created.",
+      fimSite: "Extraction confirmed · personal invite", fimNome: "{n}'s invite: good for one entry, expires in", embarcar: "Board: open the invite in Discord", online: "60 online · 207 members",
+      previaConvite: "Preview: on the site, this button opens the invite Lis creates on the spot, single use and valid for 10 minutes. On a phone it opens the Discord app; on a computer, the invite page.",
+      fimDiscord: "Enlistment received", fimDiscordTexto: "Done. Your roles arrive in a moment, and a moderator will welcome you.", voltar: "Back to Discord",
+      horas: "HOURS", min: "MIN", seg: "SEC"}
+  };
+
+  /* ===================== as perguntas ===================== */
+  /* "id" de cada opção = o título da opção no questionário do Discord, que é o que liga a resposta ao cargo
+     (ver questionario-discord-2026-11-03.json). Os modos e as classes ficam com o nome oficial; no espanhol,
+     sem fonte oficial conferida, ficam como no inglês (regra da casa: nome de produto não se traduz de cabeça). */
+  var Q = [
+    {id: "idioma", varias: true, titulo: {pt: "Qual teu idioma?", es: "¿Tu idioma?", en: "Your language?"},
+      ops: [{id: "Português", r: {pt: "Português", es: "Português", en: "Português"}}, {id: "Español", r: {pt: "Español", es: "Español", en: "Español"}}, {id: "English", r: {pt: "English", es: "English", en: "English"}}]},
+    {id: "jogo", varias: true, titulo: {pt: "Que jogos você joga?", es: "¿Qué juegos juegas?", en: "Which games do you play?"},
+      ops: ["BF6", "Call of Duty", "ARC Raiders", "Helldivers 2", "WARDOGS"].map(function(n){ return {id: n, r: {pt: n, es: n, en: n}}; })
+        .concat([{id: "Outro", r: {pt: "Outro", es: "Otro", en: "Other"}}])},
+    {id: "modos", varias: true, so: "bf6", titulo: {pt: "Quais modos você joga no BF6?", es: "¿Qué modos juegas en BF6?", en: "Which BF6 modes do you play?"},
+      ops: [["Conquista", "Conquest"], ["Escalada", "Escalation"], ["Ruptura", "Breakthrough"], ["Investida", "Rush"], ["Mata-mata em equipe", "Team Deathmatch"],
+        ["Mata-mata em pelotão", "Squad Deathmatch"], ["Dominação", "Domination"], ["Domínio da Colina", "King of the Hill"], ["REDSEC", "REDSEC"], ["Arena", "Arena"]]
+        .map(function(p){ return {id: p[0], r: {pt: p[0], es: p[1], en: p[1]}}; })},
+    {id: "classe", varias: true, so: "bf6", titulo: {pt: "Qual sua classe principal?", es: "¿Cuál es tu clase principal?", en: "What's your main class?"},
+      ops: [["Assalto", "Assault"], ["Engenharia", "Engineer"], ["Suporte", "Support"], ["Reconhecimento", "Recon"]].map(function(p){ return {id: p[0], r: {pt: p[0], es: p[1], en: p[1]}}; })},
+    {id: "plataforma", varias: true, titulo: {pt: "Onde você joga?", es: "¿Dónde juegas?", en: "Where do you play?"},
+      ops: ["PC", "PlayStation", "Xbox"].map(function(n){ return {id: n, r: {pt: n, es: n, en: n}}; })},
+    {id: "frequencia", titulo: {pt: "Joga com que frequência?", es: "¿Con qué frecuencia juegas?", en: "How often do you play?"},
+      ops: [["Todo dia", "Todos los días", "Every day"], ["Várias vezes na semana", "Varias veces por semana", "Several times a week"], ["Só fim de semana", "Solo fines de semana", "Weekends only"], ["Quando dá", "Cuando puedo", "Whenever I can"]]
+        .map(function(p){ return {id: p[0], r: {pt: p[0], es: p[1], en: p[2]}}; })},
+    {id: "horario", varias: true, opcional: true, titulo: {pt: "Quando costuma jogar?", es: "¿Cuándo sueles jugar?", en: "When do you usually play?"},
+      ops: [["Manhã", "Mañana", "Morning"], ["Tarde", "Tarde", "Afternoon"], ["Noite", "Noche", "Evening"], ["Madrugada", "Madrugada", "Late night"], ["Sem horário fixo", "Sin horario fijo", "No fixed time"]]
+        .map(function(p){ return {id: p[0], r: {pt: p[0], es: p[1], en: p[2]}}; })}
+  ];
+  var resp = {}, lingua = "pt", origem = "site", logado = false;
+  Q.forEach(function(q){ resp[q.id] = []; });
+
+  var caixa = document.getElementById("perguntas");
+  Q.forEach(function(q){
+    var s = document.createElement("section"); s.className = "cartao"; s.id = "q-" + q.id;
+    var h = document.createElement("h2"); s.appendChild(h);
+    var d = document.createElement("p"); d.className = "dica"; s.appendChild(d);
+    var g = document.createElement("div"); g.className = "opcoes"; g.setAttribute("role", "group"); s.appendChild(g);
+    q.ops.forEach(function(o){ var b = document.createElement("button"); b.type = "button"; b.setAttribute("aria-pressed", "false"); b.dataset.id = o.id;
+      b.addEventListener("click", function(){ escolhe(q, o.id); }); g.appendChild(b); o.el = b; });
+    if (q.id === "jogo"){ var o2 = document.createElement("input"); o2.type = "text"; o2.id = "outro-jogo"; o2.autocomplete = "off"; o2.hidden = true;
+      o2.addEventListener("input", pinta); s.appendChild(o2); }
+    q.el = s; q.h = h; q.d = d; caixa.appendChild(s);
+  });
+
+  function escolhe(q, id){
+    var lista = resp[q.id], i = lista.indexOf(id);
+    if (!q.varias) resp[q.id] = i >= 0 ? [] : [id];
+    else if (i >= 0) lista.splice(i, 1);
+    else {
+      /* "sem horário fixo" não convive com os horários; e o primeiro idioma escolhido vira o idioma da página */
+      if (q.id === "horario"){ if (id === "Sem horário fixo") lista.length = 0; else { var k = lista.indexOf("Sem horário fixo"); if (k >= 0) lista.splice(k, 1); } }
+      lista.push(id);
+      if (q.id === "idioma" && lista.length === 1) mudaLingua({"Português": "pt", "Español": "es", "English": "en"}[id]);
+    }
+    pinta();
+  }
+  function temBF6(){ return resp.jogo.indexOf("BF6") >= 0; }
+  function visivel(q){ return !q.so || temBF6(); }
+  function obrigatorias(){ var l = Q.filter(function(q){ return visivel(q) && !q.opcional; }); return l; }
+  function faltando(){
+    var f = obrigatorias().filter(function(q){ return !resp[q.id].length; }).map(function(q){ return q.titulo[lingua]; });
+    if (resp.jogo.indexOf("Outro") >= 0 && !document.getElementById("outro-jogo").value.trim()) f.push(T[lingua].qOutro);
+    if (origem === "site" && !document.getElementById("nome").value.trim()) f.unshift(T[lingua].qNome);
+    if (origem === "discord" && !logado) f.unshift(T[lingua].qDiscord);
+    return f;
+  }
+  function pinta(){
+    var L = T[lingua];
+    [].forEach.call(document.querySelectorAll("[data-t]"), function(el){ var k = el.dataset.t; if (L[k] !== undefined) el.textContent = L[k]; });
+    [].forEach.call(document.querySelectorAll("[data-ph]"), function(el){ el.placeholder = L[el.dataset.ph]; });
+    document.getElementById("entrar-discord").firstChild.textContent = logado ? "✓ " + L.bDiscordOk : L.bDiscord;
+    document.getElementById("entrar-discord").setAttribute("aria-pressed", logado ? "true" : "false");
+    var oj = document.getElementById("outro-jogo"); oj.hidden = resp.jogo.indexOf("Outro") < 0; oj.placeholder = L.qOutro; if (oj.hidden) oj.value = "";
+    document.getElementById("q-discord").hidden = origem !== "discord"; document.getElementById("q-nome").hidden = origem !== "site";
+    Q.forEach(function(q){ q.el.hidden = !visivel(q); if (!visivel(q)) resp[q.id] = [];
+      q.h.textContent = q.titulo[lingua]; q.d.textContent = q.opcional ? L.opcional : q.varias ? L.varias : ""; q.d.hidden = !q.d.textContent;
+      q.ops.forEach(function(o){ o.el.textContent = o.r[lingua]; o.el.setAttribute("aria-pressed", resp[q.id].indexOf(o.id) >= 0 ? "true" : "false"); });
+      q.el.classList.toggle("feito", resp[q.id].length > 0); });
+    var ob = obrigatorias(), feitas = ob.filter(function(q){ return resp[q.id].length; }).length, total = ob.length + 1;
+    feitas += origem === "site" ? (document.getElementById("nome").value.trim() ? 1 : 0) : (logado ? 1 : 0);
+    document.getElementById("barra").style.width = (feitas / total * 100) + "%";
+    document.getElementById("contagem").textContent = L.contagem.replace("{n}", feitas).replace("{t}", total);
+    var f = faltando(), env = document.getElementById("enviar");
+    env.textContent = origem === "site" ? L.enviarSite : L.enviarDiscord; env.disabled = f.length > 0;
+    document.getElementById("falta").textContent = f.length && f.length <= 2 ? L.falta.replace("{q}", f.join(" · ")) : "";
+    document.documentElement.lang = lingua === "pt" ? "pt-BR" : lingua;
+    [].forEach.call(document.querySelectorAll("[data-lingua]"), function(b){ b.setAttribute("aria-pressed", b.dataset.lingua === lingua ? "true" : "false"); });
+    [].forEach.call(document.querySelectorAll("[data-origem]"), function(b){ b.setAttribute("aria-pressed", b.dataset.origem === origem ? "true" : "false"); });
+  }
+  function mudaLingua(l){ if (l){ lingua = l; pinta(); } }
+  [].forEach.call(document.querySelectorAll("[data-lingua]"), function(b){ b.addEventListener("click", function(){ mudaLingua(b.dataset.lingua); }); });
+  [].forEach.call(document.querySelectorAll("[data-origem]"), function(b){ b.addEventListener("click", function(){ origem = b.dataset.origem; pinta(); }); });
+  document.getElementById("entrar-discord").addEventListener("click", function(){ logado = true; pinta(); });
+  document.getElementById("nome").addEventListener("input", pinta);
+
+  function resumo(el){ el.innerHTML = ""; Q.forEach(function(q){ if (!resp[q.id].length) return; var d = document.createElement("div");
+    d.textContent = q.titulo[lingua].replace(/[?¿]/g, "") + ": " + resp[q.id].map(function(id){ return q.ops.filter(function(o){ return o.id === id; })[0].r[lingua]; }).join(", ").replace(/(Outro|Otro|Other)/, function(m){ var v = document.getElementById("outro-jogo").value.trim(); return v ? m + " (" + v + ")" : m; }); el.appendChild(d); }); }
+  function relogio(el, alvo){ var L = T[lingua]; function p(){ var s = Math.max(0, Math.round((alvo - Date.now()) / 1000)), m = Math.floor(s / 60), sg = s % 60;
+      el.innerHTML = "<span>" + String(m).padStart(2, "0") + "<small>" + L.min + "</small></span><span>" + String(sg).padStart(2, "0") + "<small>" + L.seg + "</small></span>"; }
+    p(); return setInterval(p, 1000); }
+  document.getElementById("enviar").addEventListener("click", function(){
+    if (faltando().length) return;
+    document.getElementById("enviar").hidden = true; document.getElementById("falta").hidden = true;
+    if (origem === "site"){ var fim = document.getElementById("fim-site"); fim.hidden = false;
+      document.getElementById("fim-nome").textContent = T[lingua].fimNome.replace("{n}", document.getElementById("nome").value.trim());
+      relogio(document.getElementById("relogio"), Date.now() + 600000); resumo(document.getElementById("resumo")); fim.scrollIntoView({behavior: reduz ? "auto" : "smooth", block: "center"}); chamaHeli(fim); }
+    else { var f2 = document.getElementById("fim-discord"); f2.hidden = false; resumo(document.getElementById("resumo2")); f2.scrollIntoView({behavior: reduz ? "auto" : "smooth", block: "center"}); }
+  });
+  /* no site de verdade o href é o convite que a Lis criou (discord.gg/<código>); na prévia o clique só faz o helicóptero decolar */
+  document.getElementById("embarcar").addEventListener("click", function(e){ e.preventDefault(); if (heli) heli.sai = true; });
+  document.getElementById("voltar").addEventListener("click", function(e){ e.preventDefault(); });
+  pinta();
+
+  /* ===================== o fundo: o mesmo mapa em curvas de nível, desenhado uma vez ===================== */
+  var M = document.getElementById("mapa"), mc = M.getContext("2d");
+  function altura(x, y){ return Math.sin(x * 0.0042 + 1.3) * Math.cos(y * 0.0031 - 0.7) + Math.sin(x * 0.0093 - y * 0.0057 + 2.1) * 0.5 + Math.cos(x * 0.0017 + y * 0.0049) * 0.8; }
+  function desenhaMapa(){
+    var d = Math.min(window.devicePixelRatio || 1, 1.5), w = innerWidth, h = innerHeight; M.width = Math.round(w * d); M.height = Math.round(h * d); mc.setTransform(d, 0, 0, d, 0, 0);
+    var cel = 10, cols = Math.ceil(w / cel) + 1, rows = Math.ceil(h / cel) + 1, G = new Float32Array(cols * rows), fino = new Path2D(), forte = new Path2D();
+    for (var j = 0; j < rows; j++) for (var i = 0; i < cols; i++) G[j * cols + i] = altura(i * cel, j * cel);
+    for (j = 0; j < rows - 1; j++) for (i = 0; i < cols - 1; i++){
+      var a = G[j * cols + i], b = G[j * cols + i + 1], c = G[(j + 1) * cols + i + 1], e = G[(j + 1) * cols + i], mn = Math.min(a, b, c, e), mx = Math.max(a, b, c, e), X = i * cel, Y = j * cel;
+      for (var k = Math.ceil((mn + 2.8) / 0.2); k <= Math.floor((mx + 2.8) / 0.2); k++){ var v = -2.8 + k * 0.2, p = [];
+        if ((a < v) !== (b < v)) p.push(X + (v - a) / (b - a) * cel, Y);
+        if ((b < v) !== (c < v)) p.push(X + cel, Y + (v - b) / (c - b) * cel);
+        if ((e < v) !== (c < v)) p.push(X + (v - e) / (c - e) * cel, Y + cel);
+        if ((a < v) !== (e < v)) p.push(X, Y + (v - a) / (e - a) * cel);
+        var cam = k % 5 ? fino : forte; for (var q = 0; q + 3 < p.length; q += 4){ cam.moveTo(p[q], p[q + 1]); cam.lineTo(p[q + 2], p[q + 3]); } } }
+    mc.clearRect(0, 0, w, h); mc.lineWidth = 1; mc.strokeStyle = "rgba(239,233,221,.07)"; mc.stroke(fino); mc.strokeStyle = "rgba(255,138,61,.15)"; mc.stroke(forte);
+  }
+  desenhaMapa(); var redim = 0; addEventListener("resize", function(){ clearTimeout(redim); redim = setTimeout(desenhaMapa, 150); });
+
+  /* ===================== a extração: o helicóptero de ataque vem, para sobre o convite e desce a corda ===================== */
+  var C = document.getElementById("ceu"), cc = C.getContext("2d"), heli = null, alvoEl = null;
+  function fuselagem(c){ c.beginPath(); c.moveTo(80, 0); c.quadraticCurveTo(78, -7, 64, -8); c.lineTo(30, -9); c.lineTo(12, -11.5); c.lineTo(-22, -11.5); c.lineTo(-40, -5);
+    c.lineTo(-126, -3); c.lineTo(-126, 3); c.lineTo(-40, 5); c.lineTo(-22, 11.5); c.lineTo(12, 11.5); c.lineTo(30, 9); c.lineTo(64, 8); c.quadraticCurveTo(78, 7, 80, 0); c.closePath(); }
+  function asas(c){ c.beginPath(); c.moveTo(12, -11); c.lineTo(5, -42); c.lineTo(-7, -42); c.lineTo(-4, -11); c.closePath(); c.moveTo(12, 11); c.lineTo(5, 42); c.lineTo(-7, 42); c.lineTo(-4, 11); c.closePath(); }
+  function desenhaHeli(c, t){
+    c.fillStyle = "rgba(12,13,15,.9)"; c.strokeStyle = "rgba(255,138,61,.9)"; c.lineWidth = 1.3; asas(c); c.fill(); c.stroke();
+    [-1, 1].forEach(function(l){ c.fillRect(-9, l * 27 - 4.5, 24, 9); c.strokeRect(-9, l * 27 - 4.5, 24, 9); for (var m = 0; m < 2; m++){ var yy = l * (36 + m * 5); c.beginPath(); c.moveTo(-8, yy); c.lineTo(17, yy); c.stroke(); } });
+    fuselagem(c); c.fill(); c.stroke(); c.strokeRect(-24, -16, 30, 5); c.strokeRect(-24, 11, 30, 5);
+    c.beginPath(); c.ellipse(58, 0, 11, 5.5, 0, 0, 6.3); c.stroke(); c.beginPath(); c.ellipse(37, 0, 10, 6.5, 0, 0, 6.3); c.stroke();
+    c.lineWidth = 2; c.beginPath(); c.moveTo(70, 0); c.lineTo(92, 0); c.stroke(); c.lineWidth = 1.3;
+    c.beginPath(); c.moveTo(-112, -15); c.lineTo(-103, -15); c.lineTo(-103, 15); c.lineTo(-112, 15); c.closePath(); c.fill(); c.stroke();
+    var g = t * 0.035; for (var r = 0; r < 4; r++){ c.strokeStyle = "rgba(239,233,221," + (0.55 - r * 0.13) + ")"; c.lineWidth = r ? 1 : 2; c.beginPath();
+      for (var p = 0; p < 4; p++){ var a = g + p * Math.PI / 2 - r * 0.07; c.moveTo(2, 0); c.lineTo(2 + Math.cos(a) * 104, Math.sin(a) * 104); } c.stroke(); }
+  }
+  function chamaHeli(el){ if (reduz) return; alvoEl = el; heli = {x: -220, y: innerHeight * 0.2, ang: 0.1, vel: 2, sai: false, t0: performance.now()}; requestAnimationFrame(voa); }
+  function voa(t){
+    var d = Math.min(window.devicePixelRatio || 1, 1.5), w = innerWidth, h = innerHeight; if (C.width !== Math.round(w * d)){ C.width = Math.round(w * d); C.height = Math.round(h * d); }
+    cc.setTransform(d, 0, 0, d, 0, 0); cc.clearRect(0, 0, w, h); if (!heli) return;
+    var r = alvoEl.getBoundingClientRect(), ax = heli.sai ? w + 400 : r.left + r.width / 2, ay = heli.sai ? -300 : Math.max(70, r.top - 90);
+    var dist = Math.hypot(ax - heli.x, ay - heli.y), deseja = Math.atan2(ay - heli.y, ax - heli.x), dif = Math.atan2(Math.sin(deseja - heli.ang), Math.cos(deseja - heli.ang));
+    var parado = !heli.sai && dist < 30, vAlvo = heli.sai ? 3.2 : parado ? 0 : Math.min(2.8, dist * 0.02);
+    if (parado){ var nv = Math.cos(heli.ang) >= 0 ? 0 : Math.PI; heli.ang += Math.atan2(Math.sin(nv - heli.ang), Math.cos(nv - heli.ang)) * 0.05; } else heli.ang += dif * 0.035;
+    heli.vel += (vAlvo - heli.vel) * (heli.sai ? 0.02 : 0.04); heli.x += Math.cos(heli.ang) * heli.vel; heli.y += Math.sin(heli.ang) * heli.vel + Math.sin(t * 0.0012) * 0.3;
+    if (heli.sai && (heli.x > w + 300 || heli.y < -260)){ heli = null; cc.clearRect(0, 0, w, h); return; }
+    var esc = Math.max(0.36, Math.min(0.6, w / 2100));
+    if (parado || heli.vel < 0.8){ cc.setLineDash([5, 5]); cc.strokeStyle = "rgba(239,233,221,.6)"; cc.lineWidth = 1.5; cc.beginPath(); cc.moveTo(heli.x, heli.y + 8); cc.lineTo(heli.x + Math.sin(t * 0.002) * 5, r.top); cc.stroke(); cc.setLineDash([]); }
+    cc.save(); cc.translate(heli.x, heli.y); cc.rotate(heli.ang); cc.scale(esc, esc); desenhaHeli(cc, t); cc.restore();
+    requestAnimationFrame(voa);
+  }
+  window.__alist = {resp: resp, pinta: pinta};
+})();
+</script>
+</body></html>
