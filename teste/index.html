@@ -250,6 +250,9 @@ select{cursor:pointer}
       <div class="ferramenta" tabindex="0"><div class="dentro">
         <canvas data-desenho="gadgets" aria-hidden="true"></canvas>
         <h3>Comparar gadgets</h3><p>Os gadgets do jogo lado a lado, com os números de cada um, para escolher o que levar na classe.</p><span class="endereco">endereço público a definir</span></div></div>
+      <a class="ferramenta fechada" href="parceiros.html?ferramenta=dicionario"><div class="dentro">
+        <canvas data-desenho="dicionario" aria-hidden="true"></canvas>
+        <h3>Dicionário de campo</h3><p>Português, espanhol e inglês com os nomes do próprio jogo. Todo o esquadrão na mesma frequência.</p><span class="endereco"><i class="so-parceiros">só membros</i> montador.xpirados.com.br/dicionario</span></div></a>
     </div>
   </div>
 </section>
@@ -860,6 +863,11 @@ select{cursor:pointer}
           c.fillStyle = a >= b2 ? "#ff8a3d" : "rgba(255,138,61,.35)"; c.fillRect(90, y, largura * a, 7);
           c.fillStyle = b2 > a ? "#efe9dd" : "rgba(239,233,221,.3)"; c.fillRect(90, y + 10, largura * b2, 7); });
         c.fillStyle = "rgba(239,233,221,.6)"; c.font = "11px IBM Plex Mono, monospace"; c.fillText("GADGET A  ×  GADGET B", 10, h - 6);
+      } else if (tipo === "dicionario"){
+        /* reserva do cartão 3D: as três línguas acendem uma de cada vez */
+        ["PT", "ES", "EN"].forEach(function(l, li){ var vez = Math.floor(t / 1400) % 3 === li;
+          c.fillStyle = vez ? "#ff8a3d" : "rgba(239,233,221,.35)"; c.font = "bold 26px IBM Plex Mono, monospace"; c.fillText(l, cx - 80 + li * 60, cy + 9); });
+        c.fillStyle = "rgba(239,233,221,.6)"; c.font = "11px IBM Plex Mono, monospace"; c.fillText("DICIONÁRIO DE CAMPO", 10, h - 10);
       } else desenhaGuia(c, w, h, t, m);
     };
   });
@@ -1857,5 +1865,12 @@ select{cursor:pointer}
     tocaSom: function(tipo, forca){ SOM.toca(tipo, forca == null ? 0.5 : forca, 100); return SOM.estado().tocados; },
     som: function(){ return SOM.estado(); } };
 })();
+</script>
+<script type="module">
+/* Cartões 3D da 3ª rodada (amarra 143): os modelos entram por cima dos desenhos do arsenal, que ficam de reserva
+   se o 3D falhar. Só por http(s): aberta do disco, a página não importa módulo e fica com os desenhos. */
+if (location.protocol.indexOf("http") === 0)
+  import("./cartoes-3d/cartoes-3d.js").then(function(m){ window.cartoes3D = m.iniciarCartoes3D(document, {pixelRatioMaximo: 1.25}); })
+    .catch(function(e){ console.info("cartões 3D fora:", e && e.message); });
 </script>
 </body></html>
