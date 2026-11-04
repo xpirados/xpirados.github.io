@@ -4,7 +4,7 @@
  * Os canvases originais nunca perdem o contexto 2D nem são substituídos.
  */
 export const THREE_URL='https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js';
-const TIPOS=['montador','mapas','guias','atlas','gadgets','dicionario'];
+const TIPOS=['montador','mapas','guias','atlas','gadgets','dicionario','veiculos'];
 let unico;
 export function iniciarCartoes3D(alvo=document,opcoes={}) {
   if(!unico)unico=criarGestor(opcoes);
@@ -16,11 +16,11 @@ function criarGestor(opcoes){
   let T,criarModelo,renderer,promessa,raf=0,anterior=0,ultimoAtivo=0,relogio=0,modo='auto',pausado=false,destruido=false,disponivel=true,dim='',layout=true;
   let gl,ext,filaGPU=[],amostraGPU=0,inicio=0,ultimoDesenho=0,medirGPU=!!opcoes.medirGPU,ambiente,sombra;
   const folha=document.createElement('style');folha.dataset.cartoes3d='estilos';
-  folha.textContent=`.ferramenta[data-maquina-3d]{transform:none!important}
-    .ferramenta[data-maquina-3d]:has(canvas:focus-visible){outline:2px solid #ff8a3d;outline-offset:3px}
-    canvas[data-desenho][data-maquina-3d]{touch-action:pan-y;cursor:grab;background:transparent!important}
-    canvas[data-desenho][data-maquina-3d]:active{cursor:grabbing}
-    canvas[data-desenho][data-maquina-3d]:focus-visible{outline:2px solid #ff8a3d;outline-offset:3px}
+  folha.textContent=`.ferramenta[data-maquina3d]{transform:none!important}
+    .ferramenta[data-maquina3d]:has(canvas:focus-visible){outline:2px solid #ff8a3d;outline-offset:3px}
+    canvas[data-desenho][data-maquina3d]{touch-action:pan-y;cursor:grab;background:transparent!important}
+    canvas[data-desenho][data-maquina3d]:active{cursor:grabbing}
+    canvas[data-desenho][data-maquina3d]:focus-visible{outline:2px solid #ff8a3d;outline-offset:3px}
     .maquinas-3d-camada{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;contain:strict}`;
   document.head.append(folha);
   const ouvir=(el,tipo,fn,opts={})=>el.addEventListener(tipo,fn,{...opts,signal:abort.signal});
