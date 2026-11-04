@@ -1277,9 +1277,10 @@ select{cursor:pointer}
   var forcas = [{cor: "255,138,61", lado: -1}, {cor: "222,208,180", lado: 1}];
   var blindados = [], esquadras = [], soldados = [], reforco = [0, 0], pelaBorda = [false, false], proxPop = 0, heliProx = 9000, lb = null, proximoLB = 14000;
   /* o lugar do tanque alterna entre o M3A3 Bradley e o M1A2 SEPv3 a cada vez que volta depois de destruído (no PC as duas
-     forças começam com um de cada); a antiaérea é sempre o Cheetah 1A2 (amarra 131) */
+     forças começam com um de cada; no toque também: o Bradley de um lado e o MBT do outro, amarra 158); a antiaérea é sempre
+     o Cheetah 1A2 (amarra 131) */
   var NOME = {bradley: "M3A3 BRADLEY", abrams: "M1A2 SEPv3", cheetah: "CHEETAH 1A2"};
-  (poucas ? [[["bradley", "abrams"], 0], [["cheetah"], 1]] : [[["bradley", "abrams"], 0], [["cheetah"], 0], [["abrams", "bradley"], 1], [["cheetah"], 1]]).forEach(function(p){
+  (poucas ? [[["bradley", "abrams"], 0], [["abrams", "bradley"], 1], [["cheetah"], 1]] : [[["bradley", "abrams"], 0], [["cheetah"], 0], [["abrams", "bradley"], 1], [["cheetah"], 1]]).forEach(function(p){
     blindados.push({tipos: p[0], iTipo: 0, tipo: p[0][0], time: p[1], lado: forcas[p[1]].lado, nome: NOME[p[0][0]], hpMax: VIDA[p[0][0]]}); });
   function primeiro(tipo){ for (var i = 0; i < blindados.length; i++) if (blindados[i].tipo === tipo) return blindados[i]; return null; }
   function poeTipo(v, tipo){ v.iTipo = Math.max(0, v.tipos.indexOf(tipo)); v.tipo = v.tipos[v.iTipo]; v.nome = NOME[v.tipo]; v.hpMax = VIDA[v.tipo]; }
@@ -1428,13 +1429,13 @@ select{cursor:pointer}
                cheetah: {vmax: 0.018, acel: 0.000006, freio: 0.000015, giro: 0.0008, alfa: 0.000003, giroT: 0.0016, alfaT: 0.000012, meia: 17.25}};
   var FORA = 0.07;
   function escolheAlvo(v){ var fy = faixaY(), p = lugar(true, fy[0], fy[1], 60, C.w - 60, v);
-    v.alvo = p || {x: v.x, y: v.y}; v.espera = tc + (v.tipo === "cheetah" ? 9000 + Math.random() * 9000 : 3000 + Math.random() * 4000); }
+    v.alvo = p || {x: v.x, y: v.y}; v.espera = tc + (v.tipo === "cheetah" ? 9000 + Math.random() * 9000 : 3000 + Math.random() * 4000); return !!p; }
   function nasceVeiculo(v){
     v.hpMax = VIDA[v.tipo]; v.nome = NOME[v.tipo]; v.hp = v.hpMax; v.atingido = -1e9; v.disparou = -1e9; v.vel = v.velDes = 0; v.w = v.wDes = v.tw = 0; v.trilhoE = v.trilhoD = 0; v.rajada = 0;
     v.prox = tc + 2500 + Math.random() * 3000; v.proxM = tc + 6000 + Math.random() * 6000;
     var fy = faixaY();
     for (var k = 0; k < 24 && fy[1] - fy[0] > 40; k++){ var y = fy[0] + Math.random() * (fy[1] - fy[0]);
-      if (livre(v.lado < 0 ? 60 : C.w - 60, y, true)){ v.x = v.lado < 0 ? -70 : C.w + 70; v.y = y; v.ang = v.lado < 0 ? 0 : Math.PI; v.estado = "vivo"; escolheAlvo(v);
+      if (livre(v.lado < 0 ? 60 : C.w - 60, y, true)){ v.x = v.lado < 0 ? -70 : C.w + 70; v.y = y; v.ang = v.lado < 0 ? 0 : Math.PI; if (!escolheAlvo(v)) continue; v.estado = "vivo";
         /* entra já apontado para o destino (a rota reta até ele é a conferida) e já rodando: não para na beirada para girar */
         v.ang = Math.atan2(v.alvo.y - v.y, v.alvo.x - v.x); v.torre = v.torreDes = v.ang; v.vel = 0.05; return; } }
     /* sem chão livre na tela: espera fora dela, na borda do seu lado */
