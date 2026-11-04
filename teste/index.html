@@ -92,9 +92,6 @@ a{color:var(--sinal)}
 .ima{display:inline-block;font-family:var(--display);font-size:1.15rem;letter-spacing:.08em;text-decoration:none;color:#17191b;background:var(--sinal);
   padding:17px 30px;border:0;cursor:pointer;transition:transform .25s cubic-bezier(.2,.8,.2,1),background .2s,box-shadow .2s;will-change:transform}
 .ima:hover{background:var(--sinal2);box-shadow:0 0 32px rgba(255,138,61,.45)}
-.briefing{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:10px;max-width:900px}
-.briefing div{border-left:2px solid var(--sinal);padding:2px 0 2px 12px;font-size:.95rem;color:var(--poeira2)}
-.briefing b{display:block;font-family:var(--mono);font-size:.72rem;letter-spacing:.14em;color:var(--sinal);font-weight:500}
 
 /* reconhecimento */
 .painel{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:16px}
@@ -203,12 +200,6 @@ select{cursor:pointer}
     <p class="rotulo">Operação XPirados · xpirados.com.br</p>
     <h1 class="titulo" id="titulo" aria-label="XPirados">XPIRADOS</h1>
     <p class="frase">Jogos de guerra e FPS: Battlefield, Call of Duty, ARC Raiders, Helldivers, WARDOGS e o que vier. Desça a página: ela é uma missão, e no fim um helicóptero vem buscar você.</p>
-    <div class="briefing">
-      <div><b>A ROTA</b>Cada seção é um ponto da missão. O seu sinal de calor anda pela rota enquanto você desce.</div>
-      <div><b>A LENTE</b><span class="so-mouse">O mouse é uma lente térmica: há soldados patrulhando o mapa. Ache todos; clique em cima de um e ele cai.</span><span class="so-toque">Há soldados patrulhando o mapa. Toque no fundo da página: o sinal corre e revela quem está por perto.</span></div>
-      <div><b>O HELICÓPTERO</b><span class="so-mouse">Um helicóptero de ataque cruza a operação. Chegue perto até a mira travar e clique.</span><span class="so-toque">Um helicóptero de ataque cruza a operação. Toque nele quando passar.</span></div>
-      <div><b>A BATALHA</b><span class="so-mouse">Esquadras, Bradleys e antiaéreas lutam no chão livre do mapa; um Little Bird passa de vez em quando. Clique em qualquer um.</span><span class="so-toque">Esquadras, Bradleys e antiaéreas lutam no chão livre do mapa; um Little Bird passa de vez em quando. Toque em qualquer um.</span></div>
-    </div>
     <div class="acoes">
       <a class="ima" href="alistamento.html">Solicitar alistamento</a>
       <a class="btn" href="#reconhecimento">Começar a missão</a>
@@ -219,8 +210,8 @@ select{cursor:pointer}
 <section class="faixa" id="reconhecimento" data-wp="1" data-nome="RECONHECIMENTO" aria-labelledby="t-vivo">
   <div class="miolo">
     <p class="wp"><b>01</b>Reconhecimento</p>
-    <h2 id="t-vivo" data-proximo>Quem pode jogar agora</h2>
-    <p class="texto-largo">Antes de entrar, conte as tropas. Os números se atualizam sozinhos a cada minuto, lidos do Discord. Quem respondeu à chamada está pronto para montar esquadrão.</p>
+    <h2 id="t-vivo" data-proximo>Estatísticas do servidor</h2>
+    <p class="texto-largo">Veja o total de membros e quantos estão online no Discord.</p>
     <div class="painel">
       <div class="medidor"><div class="dentro"><span class="nome">No servidor</span><span class="numero" data-conta="207">207</span><span class="nota">membros do XPirados</span></div></div>
       <div class="medidor"><div class="dentro"><span class="nome">Online agora</span><span class="numero" data-conta="60">60</span><span class="nota">com o Discord aberto</span></div></div>
@@ -250,6 +241,9 @@ select{cursor:pointer}
       <a class="ferramenta fechada" href="parceiros.html?ferramenta=gadgets"><div class="dentro">
         <canvas data-desenho="gadgets" aria-hidden="true"></canvas>
         <h3>Comparar gadgets</h3><p>Os gadgets do jogo lado a lado, com os números de cada um, para escolher o que levar na classe.</p><span class="endereco"><i class="so-parceiros">só membros</i> endereço a definir</span></div></a>
+      <a class="ferramenta fechada" href="parceiros.html?ferramenta=veiculos"><div class="dentro">
+        <canvas data-desenho="veiculos" aria-hidden="true"></canvas>
+        <h3>Parque, Hangar e Doca</h3><p>Os veículos do jogo em 3D, com os números de cada um: blindados no Parque, aeronaves no Hangar e barcos na Doca.</p><span class="endereco"><i class="so-parceiros">só membros</i> endereço a definir</span></div></a>
       <a class="ferramenta fechada" href="parceiros.html?ferramenta=dicionario"><div class="dentro">
         <canvas data-desenho="dicionario" aria-hidden="true"></canvas>
         <h3>Dicionário de campo</h3><p>Português, espanhol e inglês com os nomes do próprio jogo. Todo o esquadrão na mesma frequência.</p><span class="endereco"><i class="so-parceiros">só membros</i> montador.xpirados.com.br/dicionario</span></div></a>
@@ -863,6 +857,11 @@ select{cursor:pointer}
           c.fillStyle = a >= b2 ? "#ff8a3d" : "rgba(255,138,61,.35)"; c.fillRect(90, y, largura * a, 7);
           c.fillStyle = b2 > a ? "#efe9dd" : "rgba(239,233,221,.3)"; c.fillRect(90, y + 10, largura * b2, 7); });
         c.fillStyle = "rgba(239,233,221,.6)"; c.font = "11px IBM Plex Mono, monospace"; c.fillText("GADGET A  ×  GADGET B", 10, h - 6);
+      } else if (tipo === "veiculos"){
+        /* reserva do cartão 3D (amarra 150): os três lugares acendem um de cada vez */
+        ["PARQUE", "HANGAR", "DOCA"].forEach(function(l, li){ var vez = Math.floor(t / 1400) % 3 === li;
+          c.fillStyle = vez ? "#ff8a3d" : "rgba(239,233,221,.35)"; c.font = "bold 17px IBM Plex Mono, monospace"; c.textAlign = "center"; c.fillText(l, cx + (li - 1) * 86, cy + 6); });
+        c.textAlign = "left"; c.fillStyle = "rgba(239,233,221,.6)"; c.font = "11px IBM Plex Mono, monospace"; c.fillText("TERRA · AR · ÁGUA", 10, h - 10);
       } else if (tipo === "dicionario"){
         /* reserva do cartão 3D: as três línguas acendem uma de cada vez */
         ["PT", "ES", "EN"].forEach(function(l, li){ var vez = Math.floor(t / 1400) % 3 === li;
