@@ -5,8 +5,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Allerta+Stencil&family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@500&display=swap">
 <style>
-/* Para onde vai quem clica numa ferramenta fechada (o Montador, hoje): diz que ela é de quem está no servidor do XPirados (amarra 123),
-   abre a ferramenta para quem já é de um deles e manda os outros para o alistamento. A ferramenta vem na
+/* Para onde vai quem clica numa ferramenta (todas são fechadas, amarra 144): diz que ela é de quem está no servidor do XPirados
+   (amarra 123), põe o alistamento como o botão principal e abre a ferramenta para quem já é membro. A ferramenta vem na
    consulta (?ferramenta=montador); sem ela, a página fala das ferramentas fechadas em geral. */
 :root{
   --noite:#0f1113; --concreto:#17191b; --linha:#33373b;
@@ -51,8 +51,8 @@ p{margin:0;max-width:62ch}
   <p id="texto"></p>
 
   <div class="acoes">
-    <a class="ima" id="abrir" href="#" target="_blank" rel="noopener"></a>
-    <a class="sec" href="alistamento.html" data-t="alistar"></a>
+    <a class="ima" href="alistamento.html" data-t="alistar"></a>
+    <a class="sec" id="abrir" href="#" target="_blank" rel="noopener"></a>
   </div>
   <p class="nota" data-t="nota"></p>
 </div>
@@ -61,7 +61,12 @@ p{margin:0;max-width:62ch}
 (function(){
   var FERRAMENTAS = {
     montador: {url: "https://montador.xpirados.com.br", nome: {pt: "o Montador de armas", es: "el Montador de armas", en: "the Weapon Builder"}},
-    dicionario: {url: "https://montador.xpirados.com.br/dicionario", nome: {pt: "o Dicionário de campo", es: "el Diccionario de campo", en: "the Field Dictionary"}}
+    dicionario: {url: "https://montador.xpirados.com.br/dicionario", nome: {pt: "o Dicionário de campo", es: "el Diccionario de campo", en: "the Field Dictionary"}},
+    mapas: {url: "https://mapas.xpirados.com.br", nome: {pt: "os Mapas em 3D", es: "los Mapas en 3D", en: "the 3D Maps"}},
+    guias: {url: "https://xpirados.github.io/ovni-area51/", nome: {pt: "os Guias do clã", es: "las Guías del clan", en: "the Clan Guides"}},
+    /* sem endereço ainda: o membro volta ao site */
+    atlas: {url: "", nome: {pt: "o Atlas de Artefatos", es: "el Atlas de Artefactos", en: "the Artifact Atlas"}},
+    gadgets: {url: "", nome: {pt: "o Comparar gadgets", es: "el Comparador de gadgets", en: "the Gadget Comparison"}}
   };
   var T = {
     pt: {selo: "ACESSO RESTRITO", titulo: "Só para quem está no servidor do XPirados",
@@ -84,7 +89,7 @@ p{margin:0;max-width:62ch}
     document.getElementById("titulo").textContent = t.titulo;
     document.getElementById("texto").textContent = t.texto(f ? f.nome[l] : "");
     [].forEach.call(document.querySelectorAll("[data-t]"), function(e){ e.textContent = t[e.getAttribute("data-t")]; });
-    if (f){ abrir.href = f.url; abrir.textContent = t.abrir; } else { abrir.href = "index.html"; abrir.removeAttribute("target"); abrir.textContent = t.abrirGeral; }
+    if (f && f.url){ abrir.href = f.url; abrir.textContent = t.abrir; } else { abrir.href = "index.html"; abrir.removeAttribute("target"); abrir.textContent = t.abrirGeral; }
     [].forEach.call(document.querySelectorAll(".linguas button"), function(b){ b.setAttribute("aria-pressed", b.getAttribute("data-l") === l); });
     try { localStorage.setItem("xp-lingua", l); } catch (e) {}
   }

@@ -238,18 +238,18 @@ select{cursor:pointer}
       <a class="ferramenta fechada" href="parceiros.html?ferramenta=montador"><div class="dentro">
         <canvas data-desenho="montador" aria-hidden="true"></canvas>
         <h3>Montador de armas</h3><p>Monte a sua arma peça por peça e compartilhe com o esquadrão. Para quem está no servidor do XPirados.</p><span class="endereco"><i class="so-parceiros">só membros</i> montador.xpirados.com.br</span></div></a>
-      <a class="ferramenta" href="https://mapas.xpirados.com.br" target="_blank" rel="noopener"><div class="dentro">
+      <a class="ferramenta fechada" href="parceiros.html?ferramenta=mapas"><div class="dentro">
         <canvas data-desenho="mapas" aria-hidden="true"></canvas>
-        <h3>Mapas em 3D</h3><p>Os mapas do jogo em relevo, para estudar rota, flanco e ponto de captura antes da partida.</p><span class="endereco">mapas.xpirados.com.br</span></div></a>
-      <a class="ferramenta" href="https://xpirados.github.io/ovni-area51/" target="_blank" rel="noopener"><div class="dentro">
+        <h3>Mapas em 3D</h3><p>Os mapas do jogo em relevo, para estudar rota, flanco e ponto de captura antes da partida.</p><span class="endereco"><i class="so-parceiros">só membros</i> mapas.xpirados.com.br</span></div></a>
+      <a class="ferramenta fechada" href="parceiros.html?ferramenta=guias"><div class="dentro">
         <canvas data-desenho="guias" aria-hidden="true"></canvas>
-        <h3>Guias do clã</h3><p>Segredos do jogo resolvidos pelo clã, passo a passo. O primeiro: o OVNI da Area 51.</p><span class="endereco">guias · OVNI da Area 51</span></div></a>
-      <div class="ferramenta" tabindex="0"><div class="dentro">
+        <h3>Guias do clã</h3><p>Segredos do jogo resolvidos pelo clã, passo a passo. O primeiro: o OVNI da Area 51.</p><span class="endereco"><i class="so-parceiros">só membros</i> guias · OVNI da Area 51</span></div></a>
+      <a class="ferramenta fechada" href="parceiros.html?ferramenta=atlas"><div class="dentro">
         <canvas data-desenho="atlas" aria-hidden="true"></canvas>
-        <h3>Atlas de Artefatos</h3><p>Todas as peças que o Portal oferece para montar mapa e modo, catalogadas e em 3D, para quem cria experiências.</p><span class="endereco">endereço público a definir</span></div></div>
-      <div class="ferramenta" tabindex="0"><div class="dentro">
+        <h3>Atlas de Artefatos</h3><p>Todas as peças que o Portal oferece para montar mapa e modo, catalogadas e em 3D, para quem cria experiências.</p><span class="endereco"><i class="so-parceiros">só membros</i> endereço a definir</span></div></a>
+      <a class="ferramenta fechada" href="parceiros.html?ferramenta=gadgets"><div class="dentro">
         <canvas data-desenho="gadgets" aria-hidden="true"></canvas>
-        <h3>Comparar gadgets</h3><p>Os gadgets do jogo lado a lado, com os números de cada um, para escolher o que levar na classe.</p><span class="endereco">endereço público a definir</span></div></div>
+        <h3>Comparar gadgets</h3><p>Os gadgets do jogo lado a lado, com os números de cada um, para escolher o que levar na classe.</p><span class="endereco"><i class="so-parceiros">só membros</i> endereço a definir</span></div></a>
       <a class="ferramenta fechada" href="parceiros.html?ferramenta=dicionario"><div class="dentro">
         <canvas data-desenho="dicionario" aria-hidden="true"></canvas>
         <h3>Dicionário de campo</h3><p>Português, espanhol e inglês com os nomes do próprio jogo. Todo o esquadrão na mesma frequência.</p><span class="endereco"><i class="so-parceiros">só membros</i> montador.xpirados.com.br/dicionario</span></div></a>
@@ -1646,9 +1646,37 @@ select{cursor:pointer}
     esquadras.forEach(andaEsquadra); soldados.forEach(function(s){ andaSoldado(s, dt); });
     andaLB(); reacoes(); ataqueHeli();
   }
+  /* ninguém anda por cima de ninguém (amarra 144b). Depois que os blindados andam: dois que se encostam se afastam meio a meio
+     (só para chão livre), e o soldado de pé que entrou no casco de um blindado sai pelo lado mais perto. O casco é o retângulo
+     do desenho (veiculos.js) com FOLGA_S px de chapa; entre blindados, um círculo de meio comprimento do casco */
+  var FOLGA_S = 4;
+  function casco(v){ var m = XPVeiculos.medidas[v.tipo].casco, e = ev(); return {meioC: m.comprimento / 2 * e, meioL: m.largura / 2 * e}; }
+  function separa(){
+    var vivos = blindados.filter(function(v){ return v.estado === "vivo"; }), i, j;
+    for (i = 0; i < vivos.length; i++) for (j = i + 1; j < vivos.length; j++){
+      var a = vivos[i], b = vivos[j], dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 0.01, min = casco(a).meioC + casco(b).meioC;
+      if (d >= min) continue;
+      var p = (min - d) / 2, ux = dx / d, uy = dy / d;
+      if (livre(a.x - ux * p, a.y - uy * p, true)){ a.x -= ux * p; a.y -= uy * p; }
+      if (livre(b.x + ux * p, b.y + uy * p, true)){ b.x += ux * p; b.y += uy * p; } }
+    soldados.forEach(function(s){ if (s.estado !== "vivo") return;
+      vivos.forEach(function(v){ var k = casco(v), hc = k.meioC + FOLGA_S, hl = k.meioL + FOLGA_S, rx = s.x - v.x, ry = s.y - v.y;
+        if (Math.abs(rx) > hc + hl || Math.abs(ry) > hc + hl) return;
+        var c = Math.cos(v.ang), sn = Math.sin(v.ang), lx = rx * c + ry * sn, ly = -rx * sn + ry * c;
+        if (Math.abs(lx) >= hc || Math.abs(ly) >= hl) return;
+        if (hl - Math.abs(ly) < hc - Math.abs(lx)) ly = (ly < 0 ? -1 : 1) * hl; else lx = (lx < 0 ? -1 : 1) * hc;
+        s.x = v.x + lx * c - ly * sn; s.y = v.y + lx * sn + ly * c; }); }); }
+  /* para o teste: quantos pares estão um por cima do outro agora (soldado de pé dentro de casco; blindados mais perto que o mínimo) */
+  function sobrepostos(){ var n = {soldado: 0, blindado: 0}, vivos = blindados.filter(function(v){ return v.estado === "vivo"; });
+    vivos.forEach(function(v, i){ var k = casco(v);
+      vivos.slice(i + 1).forEach(function(b){ if (Math.hypot(b.x - v.x, b.y - v.y) < (k.meioC + casco(b).meioC) * 0.9) n.blindado++; });
+      soldados.forEach(function(s){ if (s.estado !== "vivo") return; var rx = s.x - v.x, ry = s.y - v.y, c = Math.cos(v.ang), sn = Math.sin(v.ang);
+        if (Math.abs(rx * c + ry * sn) < k.meioC && Math.abs(-rx * sn + ry * c) < k.meioL) n.soldado++; }); });
+    return n; }
   /* o passo fixo do chão: blindados, Little Bird, projéteis e peças soltas */
   function fisica(h){
     blindados.forEach(function(v){ fisVeiculo(v, h); });
+    separa();
     if (lb && !lb.caindo) voaAr(lb, h, PLB);
     projeteis = projeteis.filter(function(p){ return voa(p, h); });
     for (var i = 0; i < pecasC.length; i++) fisPeca(pecasC[i], h);
@@ -1821,6 +1849,7 @@ select{cursor:pointer}
       var vivos = 0, caidos = 0, naTela = 0; soldados.forEach(function(s){ if (s.estado !== "vivo") caidos++; else { vivos++; if (naVista(s.y, 0) && s.x > 0 && s.x < C.w) naTela++; } });
       return {tanque: um(primeiro("bradley")), aa: um(primeiro("cheetah")), blindados: blindados.map(um), soldados: {vivos: vivos, caidos: caidos, naTela: naTela, esquadras: esquadras.length},
         balas: projeteis.length, contagem: contagem, acertos: acertosB, destruidos: destruidosB}; },
+    sobrepostos: sobrepostos,
     /* o Bradley e o Cheetah da frente parados em chão livre na tela (com chão livre também a 70 px de cada lado), os outros
        blindados de reserva e a batalha calada até forcaTroca */
     forcaChao: function(tipo){ calado = true; var fy = faixaY(), a = lugarDe(tipo || "bradley"), b = primeiro("cheetah"), pa = null, pb = null;
