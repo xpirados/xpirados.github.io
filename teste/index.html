@@ -1179,8 +1179,8 @@ select{cursor:pointer}
   };
 
   /* ===================== 6. o som dos tiros ===================== */
-  /* Sintetizado na hora pela Web Audio, sem arquivo: ruído passado num filtro grave e um baque que cai de tom. Nada passa
-     de ~1 kHz, por isso o tiro sai abafado, nunca estridente. Só nasce depois do primeiro gesto do visitante, cala junto com
+  /* Sintetizado na hora pela Web Audio, sem arquivo: ruído passado num filtro grave e um baque que cai de tom. Um filtro grave
+     no fim corta o agudo de tudo (o dono achou o tiro irritante: amarra 147), por isso ele sai abafado, nunca estridente. Só nasce depois do primeiro gesto do visitante, cala junto com
      "Parar animações" (e com o pedido do sistema de menos movimento) e tem botão próprio, que lembra a escolha. */
   var SOM = (function(){
     var ctx = null, mestre = null, ruido = null, ligado = true, tocados = 0, botao = document.getElementById("som");
@@ -1191,12 +1191,19 @@ select{cursor:pointer}
                  flare: [1000, 0.2, 0.14, 0], cano25: [760, 0.2, 0.42, 96]}; /* corte do filtro (Hz), duração (s), volume, baque (Hz) */
     /* com muita troca de tiro o som não empilha: no máximo MAXV tiros soando juntos, e o mesmo tiro de longe não se repete em
        menos de 90 ms. O tiro do próprio visitante (força 0,9 ou mais) sempre toca */
+    /* testes do abafado (amarra 147): ?som=1, 2 ou 3 no endereço escolhe; sem ele vale o 1. corte multiplica o filtro de cada
+       tiro, teto é um filtro grave no fim de tudo (Hz), ataque é quanto o estalo demora a subir (s; mais lento, menos agressivo) */
+    var PERFIS = {"1": {corte: 0.6, teto: 750, ataque: 0.012, volume: 0.3},
+                  "2": {corte: 0.4, teto: 480, ataque: 0.02, volume: 0.28},
+                  "3": {corte: 0.25, teto: 300, ataque: 0.03, volume: 0.26}};
+    var PERFIL = PERFIS[(/[?&]som=([123])/.exec(location.search) || [])[1] || "1"];
     var vozes = [], ultimoDo = {}, MAXV = poucas ? 4 : 6;
     function prepara(){
       if (!ctx){ var AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
         try { ctx = new AC(); } catch (e) { return; }
         var limite = ctx.createDynamicsCompressor(); limite.threshold.value = -20; limite.ratio.value = 6; limite.connect(ctx.destination);
-        mestre = ctx.createGain(); mestre.gain.value = 0.35; mestre.connect(limite);
+        var teto = ctx.createBiquadFilter(); teto.type = "lowpass"; teto.Q.value = 0.5; teto.frequency.value = PERFIL.teto; teto.connect(limite);
+        mestre = ctx.createGain(); mestre.gain.value = PERFIL.volume; mestre.connect(teto);
         var n = Math.round(ctx.sampleRate * 1.5), d; ruido = ctx.createBuffer(1, n, ctx.sampleRate); d = ruido.getChannelData(0); for (var i = 0; i < n; i++) d[i] = Math.random() * 2 - 1; }
       ajusta();
     }
@@ -1206,11 +1213,12 @@ select{cursor:pointer}
       var t = ctx.currentTime + (atraso || 0), vol = o[2] * forca, saida = ctx.createGain(), p = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
       if (p){ p.pan.value = pan; saida.connect(p); p.connect(mestre); } else saida.connect(mestre);
       var fonte = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain(); fonte.buffer = ruido;
-      f.type = "lowpass"; f.Q.value = 0.7; f.frequency.setValueAtTime(o[0], t); f.frequency.exponentialRampToValueAtTime(Math.max(60, o[0] * 0.3), t + o[1]);
-      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.005); g.gain.exponentialRampToValueAtTime(0.0001, t + o[1]);
+      var corte = o[0] * PERFIL.corte;
+      f.type = "lowpass"; f.Q.value = 0.7; f.frequency.setValueAtTime(corte, t); f.frequency.exponentialRampToValueAtTime(Math.max(40, corte * 0.3), t + o[1]);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + PERFIL.ataque); g.gain.exponentialRampToValueAtTime(0.0001, t + o[1]);
       fonte.connect(f); f.connect(g); g.connect(saida); fonte.start(t, Math.random(), o[1] + 0.05);
       if (o[3]){ var s = ctx.createOscillator(), gs = ctx.createGain(); s.type = "sine"; s.frequency.setValueAtTime(o[3], t); s.frequency.exponentialRampToValueAtTime(o[3] * 0.45, t + o[1] * 0.8);
-        gs.gain.setValueAtTime(0.0001, t); gs.gain.exponentialRampToValueAtTime(vol * 0.9, t + 0.006); gs.gain.exponentialRampToValueAtTime(0.0001, t + o[1] * 0.9);
+        gs.gain.setValueAtTime(0.0001, t); gs.gain.exponentialRampToValueAtTime(vol * 0.9, t + PERFIL.ataque); gs.gain.exponentialRampToValueAtTime(0.0001, t + o[1] * 0.9);
         s.connect(gs); gs.connect(saida); s.start(t); s.stop(t + o[1]); }
     }
     /* pointerup e touchend, não pointerdown: no toque o navegador só libera o som quando o dedo sobe */
@@ -1218,7 +1226,7 @@ select{cursor:pointer}
     if (botao) botao.addEventListener("click", function(){ ligado = !ligado; try { localStorage.setItem("xpirados-som", ligado ? "1" : "0"); } catch (e) {} prepara(); });
     document.addEventListener("visibilitychange", ajusta);
     ajusta();
-    return {ajusta: ajusta, estado: function(){ return {ctx: ctx ? ctx.state : "nenhum", ligado: ligado, tocados: tocados}; },
+    return {ajusta: ajusta, estado: function(){ return {ctx: ctx ? ctx.state : "nenhum", ligado: ligado, tocados: tocados, perfil: PERFIL}; },
       /* forca: 1 para o tiro do visitante; os blindados entre si soam de longe, mais baixo */
       toca: function(tipo, forca, x, atraso){ if (!ctx || !ligado || parado || document.hidden || ctx.state !== "running") return;
         var f = forca == null ? 1 : forca, agora = ctx.currentTime, o = TIPOS[tipo];
