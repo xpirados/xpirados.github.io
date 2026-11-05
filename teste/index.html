@@ -137,6 +137,8 @@ body,.faixa,.miolo,.painel,.ferramentas,.clas,.agenda,.entrada,.passos,.passos o
 .holo .pe b{color:var(--cor);font-weight:500}
 .holo{transition:transform .18s ease-out,opacity .5s,background .5s,box-shadow .5s}
 .clas.brasao-de-pe .holo{opacity:.16;box-shadow:none}
+/* amarra 163: no iPad o Safari calculava a opacidade (0,16 lida no aparelho) e não a pintava num cartão em preserve-3d; no toque o cartão vira plano (a inclinação é só do mouse) */
+.clas.toque .holo{transform-style:flat;transform:none}.clas.toque .holo *{transform:none}
 /* com o brasão de pé, o título e o texto da seção se apagam como os outros cartões: cobriam as letras do TAG (D-23) */
 #aliados .miolo > :not(.clas){transition:opacity .5s}
 #aliados:has(.clas.brasao-de-pe) .miolo > :not(.clas){opacity:.12}
@@ -939,10 +941,10 @@ select{cursor:pointer}
     return [16, 8, 0].map(function(d){ var v = (n >> d) & 255; return Math.round(v + (255 - v) * 0.4); }).join(","); }
   function ergueBrasao(card, toque){ var i = [].indexOf.call(grupoClas.children, card); if (!grades[i] || parado) return;
     var r = card.getBoundingClientRect(); brasao.i = i; brasao.dentro = true; brasao.toque = toque;
-    grupoClas.classList.add("brasao-de-pe"); [].forEach.call(grupoClas.children, function(x){
+    grupoClas.classList.add("brasao-de-pe"); grupoClas.classList.toggle("toque", !!toque); [].forEach.call(grupoClas.children, function(x){
       x.classList.toggle("escolhido", x === card); x.setAttribute("aria-pressed", String(x === card)); });
     brasao.t0 = performance.now(); brasao.ox = r.left + r.width / 2; brasao.oy = r.top + r.height / 2; brasao.cor = corDoCartao(card); mexeu = true; }
-  function baixaBrasao(){ brasao.dentro = brasao.toque = false; grupoClas.classList.remove("brasao-de-pe");
+  function baixaBrasao(){ brasao.dentro = brasao.toque = false; grupoClas.classList.remove("brasao-de-pe", "toque");
     [].forEach.call(grupoClas.children, function(card){ card.classList.remove("escolhido"); card.setAttribute("aria-pressed", "false");
       card.style.setProperty("--rx", "0deg"); card.style.setProperty("--ry", "0deg"); }); mexeu = true; }
   [].forEach.call(document.querySelectorAll(".holo"), function(card, i){
