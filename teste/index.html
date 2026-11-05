@@ -530,7 +530,17 @@ select{cursor:pointer}
   var gestoToque = null, dedos = new Set(), ultimoToque = null;
   function cliqueDoToque(e){ return ultimoToque && performance.now() - ultimoToque.t < 900 &&
     Math.hypot(e.clientX - ultimoToque.x, e.clientY - ultimoToque.y) < 25; }
-  addEventListener("click", function(e){ if (!cliqueDoToque(e)) acionaMapa(e); });
+  /* amarra 163: ?diag=1 mostra na tela o que o aparelho recebeu no toque (o WebKit do PC não reproduz o iPad de verdade).
+     O click não ergue o brasão: o WebKit puxa para o cartão o click de um toque feito perto dele. */
+  var ultimoCartao = null, DIAG = /[?&]diag=1/.test(location.search) ? document.createElement("pre") : null;
+  if (DIAG){ DIAG.style.cssText = "position:fixed;left:8px;top:70px;z-index:99;max-width:60vw;margin:0;padding:6px 8px;background:rgba(0,0,0,.82);color:#7f7;font:12px/1.35 monospace;pointer-events:none;white-space:pre-wrap"; document.body.appendChild(DIAG); }
+  function diag(m){ if (!DIAG) return; var NL = String.fromCharCode(10), l = DIAG.textContent ? DIAG.textContent.split(NL) : []; l.push((performance.now() / 1000).toFixed(2) + " " + m); DIAG.textContent = l.slice(-14).join(NL); }
+  function tocaCartao(card, via){ var t = performance.now();
+    if (ultimoCartao && ultimoCartao.card === card && t - ultimoCartao.t < 700){ diag(via + ": repetido, ignorado"); return; }
+    ultimoCartao = {card:card, t:t}; ergueBrasao(card, true); if (DIAG) setTimeout(function(){ var o = [].filter.call(grupoClas.children, function(x){ return x !== card; })[0]; diag("depois: classe=" + grupoClas.className + " opacidade de outro cartao=" + (o ? getComputedStyle(o).opacity : "?") + " k=" + brasao.k.toFixed(2)); }, 900); diag(via + ": brasao " + (brasao.dentro ? "ERGUIDO" : "nao ergueu (grade " + !!grades[[].indexOf.call(grupoClas.children, card)] + ", parado " + parado + ")")); }
+  addEventListener("click", function(e){ var card = e.target.closest && e.target.closest(".holo");
+    diag("click " + (card ? "no cartao" : (e.target.className || e.target.tagName)) + " fino=" + fino);
+    if (!cliqueDoToque(e)) acionaMapa(e); });
   addEventListener("pointerdown", function(e){
     if (e.pointerType === "mouse"){ ultimoToque = null; return; }
     dedos.add(e.pointerId);
@@ -546,9 +556,10 @@ select{cursor:pointer}
     var g = gestoToque; gestoToque = null;
     ultimoToque = {x:e.clientX, y:e.clientY, t:performance.now()};
     if (!g || g.id !== e.pointerId || dedos.size || g.moveu || Math.abs(scrollY - g.rol) > 10 ||
-        Math.hypot(e.clientX - g.x, e.clientY - g.y) > 10 || performance.now() - g.t > 600) return;
+        Math.hypot(e.clientX - g.x, e.clientY - g.y) > 10 || performance.now() - g.t > 600){
+      diag("pointerup " + e.pointerType + " recusado: " + (!g ? "sem gesto" : g.id !== e.pointerId ? "outro dedo" : dedos.size ? "dedos " + dedos.size : g.moveu ? "moveu" : Math.abs(scrollY - g.rol) > 10 ? "rolou" : performance.now() - g.t > 600 ? "demorou " + Math.round(performance.now() - g.t) + "ms" : "andou")); return; }
     var card = g.el.closest(".holo");
-    if (card){ ergueBrasao(card, true); return; }
+    if (card){ tocaCartao(card, "pointerup"); return; }
     if (brasao.toque){ baixaBrasao(); return; }
     acionaMapa({target:g.el, clientX:e.clientX, clientY:e.clientY});
   }, {passive:true});
