@@ -34,6 +34,11 @@ a{color:var(--sinal)}
 /* o mapa da operação, por trás de tudo */
 #mapa,#mapa-vivo,#chao{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
 #ceu{position:fixed;inset:0;width:100%;height:100%;z-index:40;pointer-events:none}
+/* D-51: só as imagens/controles da interação perdem seleção e menu; a prosa continua copiável. */
+#mapa,#mapa-vivo,#chao,#ceu,.holo,.holo *{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.holo img{-webkit-user-drag:none}
+/* O alvo DOM do toque é o chão sob o canvas. Pan e pinch continuam nativos; duplo toque não amplia. */
+body,.faixa,.miolo,.painel,.ferramentas,.clas,.agenda,.entrada,.passos,.passos ol,.rodape{touch-action:manipulation}
 .municao{position:fixed;top:0;left:0;height:calc(3px + env(safe-area-inset-top,0px));width:0;background:var(--sinal);z-index:60;box-shadow:0 0 12px var(--sinal)}
 
 /* o ponto da missão que abre cada seção */
@@ -117,7 +122,7 @@ a{color:var(--sinal)}
 @media (min-width:900px){.clas{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}}
 @media (max-width:640px){.clas{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.holo{padding:10px;gap:4px}.holo .nome{font-size:1.1rem}.holo .cabeca,.holo .pe{font-size:.6rem}.holo .pe{flex-direction:column;align-items:center;gap:0}.holo img,.holo .nome{transform:none}}
 .holo{--rx:0deg;--ry:0deg;--gx:50%;--gy:50%;--cor:#ff8a3d;position:relative;aspect-ratio:5/7;max-width:100%;transform:rotateX(var(--rx)) rotateY(var(--ry));
-  transition:transform .18s ease-out;transform-style:preserve-3d;touch-action:pan-y;background:linear-gradient(165deg,#2a2e32,#121416 70%);
+  transition:transform .18s ease-out;transform-style:preserve-3d;touch-action:manipulation;background:linear-gradient(165deg,#2a2e32,#121416 70%);
   border:1px solid color-mix(in srgb,var(--cor) 70%,#000);display:grid;grid-template-rows:auto 1fr auto auto;padding:16px;gap:8px;box-sizing:border-box;box-shadow:0 18px 40px rgba(0,0,0,.45)}
 .holo::before{content:"";position:absolute;inset:8px;border:1px solid color-mix(in srgb,var(--cor) 40%,transparent);pointer-events:none}
 .holo::after{content:"";position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen;
@@ -252,7 +257,7 @@ select{cursor:pointer}
   <div class="miolo">
     <p class="wp"><b>03</b>Aliados</p>
     <h2 id="t-clas" data-proximo>Quem luta do nosso lado</h2>
-    <p class="texto-largo">Passe o mouse num cartão: a página inteira estremece e o brasão do clã sobe do mapa. No site, cada clã só aparece se aceitar, e nenhum cartão tem botão de recrutamento.</p>
+    <p class="texto-largo">Toque ou passe o mouse num cartão: a página inteira estremece e o brasão do clã sobe do mapa. No toque, toque fora para voltar. No site, cada clã só aparece se aceitar, e nenhum cartão tem botão de recrutamento.</p>
     <div class="clas">
       <div class="holo" style="--cor:#ff8a3d" role="img" aria-label="Cartão do clã XPirados, clã de jogos de combate"><div class="cabeca"><span>CLÃ DA CASA</span><span>PT · ES · EN</span></div><img src="img/xpirados.png" alt=""><div class="nome">XPirados<small>jogos de combate</small></div><div class="pe"><span>concedido</span><b>desde 08/2026</b></div></div>
       <div class="holo" style="--cor:#b02e2e" role="img" aria-label="Cartão do clã TAG, infantaria no multijogador"><div class="cabeca"><span>CLÃ</span><span>BATTLEFIELD 6</span></div><img src="img/tag.png" alt=""><div class="nome">TAG<small>infantaria · multijogador</small></div><div class="pe"><span>parceiro</span><b>desde 08/2026</b></div></div>
@@ -514,11 +519,42 @@ select{cursor:pointer}
   function hud(){ hudSinais.textContent = achados + "/" + sinais.length + (sinais.length && achados === sinais.length ? " · ÁREA LIMPA" : ""); hudAcertos.textContent = acertos ? acertos + (acertos > 1 ? " ACERTOS · " : " ACERTO · ") + danoTotal + " DE DANO" : "0"; hudAbatidos.textContent = abatidos; }
 
   /* o clique no mapa (fora de botão, cartão ou formulário) solta um marcador: um anel que corre e revela quem está perto */
-  addEventListener("click", function(e){
+  function acionaMapa(e){
     /* o tiro do visitante (seção 7) resolve o alvo que o clique de fato pega: blindado, aeronave, soldado da batalha ou soldado escondido */
     if (tiroDoVisitante(e)) return;
     if (e.target.closest("a,button,input,select,label,form,.holo,.ferramenta,.medidor,.convite,.evento,.vazio,nav")) return;
     pings.push({x: e.clientX, y: e.clientY + rolY, t: performance.now()}); if (pings.length > 4) pings.shift(); mexeu = true;
+  }
+  /* D-51: WebKit entrega pointerup sem click no chão. Um gesto curto dispara uma vez;
+     mover, cancelar, segurar ou usar dois dedos deixa o gesto com o navegador. */
+  var gestoToque = null, dedos = new Set(), ultimoToque = null;
+  function cliqueDoToque(e){ return ultimoToque && performance.now() - ultimoToque.t < 900 &&
+    Math.hypot(e.clientX - ultimoToque.x, e.clientY - ultimoToque.y) < 25; }
+  addEventListener("click", function(e){ if (!cliqueDoToque(e)) acionaMapa(e); });
+  addEventListener("pointerdown", function(e){
+    if (e.pointerType === "mouse"){ ultimoToque = null; return; }
+    dedos.add(e.pointerId);
+    if (!e.isPrimary || dedos.size !== 1){ gestoToque = null; return; }
+    gestoToque = {id:e.pointerId, x:e.clientX, y:e.clientY, rol:scrollY, t:performance.now(), el:e.target, moveu:false};
+  }, {passive:true});
+  addEventListener("pointermove", function(e){ if (gestoToque && e.pointerId === gestoToque.id &&
+    Math.hypot(e.clientX - gestoToque.x, e.clientY - gestoToque.y) > 10) gestoToque.moveu = true; }, {passive:true});
+  addEventListener("pointercancel", function(e){ dedos.delete(e.pointerId); gestoToque = null; }, {passive:true});
+  addEventListener("pointerup", function(e){
+    if (e.pointerType === "mouse") return;
+    dedos.delete(e.pointerId);
+    var g = gestoToque; gestoToque = null;
+    ultimoToque = {x:e.clientX, y:e.clientY, t:performance.now()};
+    if (!g || g.id !== e.pointerId || dedos.size || g.moveu || Math.abs(scrollY - g.rol) > 10 ||
+        Math.hypot(e.clientX - g.x, e.clientY - g.y) > 10 || performance.now() - g.t > 600) return;
+    var card = g.el.closest(".holo");
+    if (card){ ergueBrasao(card, true); return; }
+    if (brasao.toque){ baixaBrasao(); return; }
+    acionaMapa({target:g.el, clientX:e.clientX, clientY:e.clientY});
+  }, {passive:true});
+  ["contextmenu", "selectstart", "dragstart"].forEach(function(tipo){
+    document.addEventListener(tipo, function(e){ var el = e.target.nodeType === 1 ? e.target : e.target.parentElement;
+      if (el && (noChao(el) || (el.closest && el.closest(".holo")))) e.preventDefault(); });
   });
   /* abate de um soldado escondido (o da lente, ou o losango já achado no toque) */
   function abateSinal(s, x, y){ var tt = performance.now(); s.xm = onde(s, tt); s.morto = tt; abatidos++; if (!s.achado){ s.achado = true; achados++; } hud();
@@ -890,11 +926,22 @@ select{cursor:pointer}
   var grupoClas = document.querySelector(".clas");
   function corDoCartao(card){ var m = /#([0-9a-f]{6})/i.exec(card.getAttribute("style") || ""), n = m ? parseInt(m[1], 16) : 0xff8a3d; /* clareada 40% para o branco: o vermelho escuro da TAG sumia no fundo da página */
     return [16, 8, 0].map(function(d){ var v = (n >> d) & 255; return Math.round(v + (255 - v) * 0.4); }).join(","); }
+  function ergueBrasao(card, toque){ var i = [].indexOf.call(grupoClas.children, card); if (!grades[i] || parado) return;
+    var r = card.getBoundingClientRect(); brasao.i = i; brasao.dentro = true; brasao.toque = toque;
+    grupoClas.classList.add("brasao-de-pe"); [].forEach.call(grupoClas.children, function(x){
+      x.classList.toggle("escolhido", x === card); x.setAttribute("aria-pressed", String(x === card)); });
+    brasao.t0 = performance.now(); brasao.ox = r.left + r.width / 2; brasao.oy = r.top + r.height / 2; brasao.cor = corDoCartao(card); mexeu = true; }
+  function baixaBrasao(){ brasao.dentro = brasao.toque = false; grupoClas.classList.remove("brasao-de-pe");
+    [].forEach.call(grupoClas.children, function(card){ card.classList.remove("escolhido"); card.setAttribute("aria-pressed", "false");
+      card.style.setProperty("--rx", "0deg"); card.style.setProperty("--ry", "0deg"); }); mexeu = true; }
   [].forEach.call(document.querySelectorAll(".holo"), function(card, i){
-    card.addEventListener("pointerenter", function(e){ if (!grades[i] || parado) return; var r = card.getBoundingClientRect();
-      brasao.i = i; brasao.dentro = true; grupoClas.classList.add("brasao-de-pe"); [].forEach.call(grupoClas.children, function(x){ x.classList.toggle("escolhido", x === card); }); brasao.t0 = performance.now(); brasao.ox = r.left + r.width / 2; brasao.oy = r.top + r.height / 2; brasao.cor = corDoCartao(card); mexeu = true; });
-    card.addEventListener("pointerleave", function(){ brasao.dentro = false; grupoClas.classList.remove("brasao-de-pe"); card.classList.remove("escolhido"); card.style.setProperty("--rx", "0deg"); card.style.setProperty("--ry", "0deg"); mexeu = true; });
-    card.addEventListener("pointermove", function(e){ if (parado) return; var r = card.getBoundingClientRect(), px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
+    card.setAttribute("role", "button"); card.tabIndex = 0; card.setAttribute("aria-pressed", "false");
+    card.querySelector("img").draggable = false;
+    card.addEventListener("keydown", function(e){ if (e.key === "Escape"){ baixaBrasao(); return; }
+      if (e.key === "Enter" || e.key === " "){ e.preventDefault(); ergueBrasao(card, true); } });
+    card.addEventListener("pointerenter", function(e){ if (e.pointerType === "mouse") ergueBrasao(card, false); });
+    card.addEventListener("pointerleave", function(e){ if (e.pointerType === "mouse" && !brasao.toque) baixaBrasao(); });
+    card.addEventListener("pointermove", function(e){ if (parado || e.pointerType !== "mouse") return; var r = card.getBoundingClientRect(), px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
       card.style.setProperty("--rx", ((py - 0.5) * -22) + "deg"); card.style.setProperty("--ry", ((px - 0.5) * 26) + "deg");
       card.style.setProperty("--gx", (px * 100) + "%"); card.style.setProperty("--gy", (py * 100) + "%"); });
   });
@@ -1286,7 +1333,7 @@ select{cursor:pointer}
       var v = {fonte: fonte, ganho: ganho, pan: p, nos: p ? [fonte, ganho, p] : [fonte, ganho], fim: false};
       fonte.onended = function(){ v.fim = true; desconecta(v.nos); }; return v;
     }
-    ["pointerup", "touchend", "click", "keydown"].forEach(function(ev){ addEventListener(ev, prepara, {passive: true}); });
+    ["pointerup", "touchend", "click", "keydown"].forEach(function(ev){ addEventListener(ev, prepara, {passive: true, capture: true}); });
     if (botao) botao.addEventListener("click", function(ev){ ligado = !ligado;
       try { localStorage.setItem("xpirados-som", ligado ? "1" : "0"); } catch (e) {} prepara(ev); });
     document.addEventListener("visibilitychange", ajusta); ajusta();
