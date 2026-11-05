@@ -988,9 +988,23 @@ select{cursor:pointer}
     do { crypto.getRandomValues(b); } while (b[0] >= lim); return min + (b[0] % n); }
   /* o helicóptero de ataque do jogo que ele representa é o M77E Falchion: vida 1000 (ars66-dano.csv, linha 1977) */
   /* entra já voando, na velocidade de cruzeiro, pelo rumo de entrada */
+  /* D-50: camera ortografica, vista de cima. 120 m nao altera px/m.
+     Chao arredondado em 11 unidades/m (veiculos.js); fontes e desvios no relatorio.
+     Fus. AH-64 14,7 m / rotor 14,6 m; AH/MH-6M 24,6 / 27,4 pes. */
+  var AR_METROS = {heli: {corpo: 14.7, rotor: 14.6, desenho: 206}, lb: {corpo: 7.49808, rotor: 8.35152, desenho: 93}};
+  var ALTITUDE_AR = 120, SOL_AR = 85 * Math.PI / 180;
+  function escalaAr(qual){ return 11 * ev() * AR_METROS[qual].corpo / AR_METROS[qual].desenho; }
+  function sombraAr(c, a, qual){
+    var d = ALTITUDE_AR / Math.tan(SOL_AR) * 11 * ev();
+    c.save(); c.translate(a.x + d * 0.6, a.y + d * 0.8); c.rotate(a.ang); c.scale(escalaAr(qual), escalaAr(qual));
+    c.fillStyle = "rgba(0,0,0,.18)";
+    if (qual === "heli"){ fuselagem(c); c.fill(); asas(c); c.fill(); }
+    else { c.beginPath(); c.ellipse(6, 0, 25, 12, 0, 0, 6.3); c.fill(); c.fillRect(-62, -2, 49, 4); }
+    c.restore();
+  }
   function novoHeli(modo){ var w = H.w, h = H.h, lado = Math.random() < 0.5, ang = lado ? 0.12 : Math.PI - 0.12;
     return aeronave({nome: "HELO-1", x: lado ? -260 : w + 260, y: h * (0.18 + Math.random() * 0.3), ang: ang, t0: performance.now(), modo: modo, fuga: false,
-      hp: 1000, hpMax: 1000, flareAte: 0, saida: {x: lado ? w + 500 : -500, y: h * (0.45 + Math.random() * 0.4)}}, CRUZEIRO); }
+      hp: 1000, hpMax: 1000, altitude: ALTITUDE_AR, esc: escalaAr("heli"), flareAte: 0, saida: {x: lado ? w + 500 : -500, y: h * (0.45 + Math.random() * 0.4)}}, CRUZEIRO); }
   function distMouse(){ return heli ? Math.hypot(mouse.x - heli.x, mouse.y - heli.y) : 1e9; }
   /* chamarizes (flare): o visual de sempre e, para o míssil guiado no ar, a isca. Recarregam em 12 s; o tiro do visitante
      solta-os mesmo recarregando (amarra 120: o clique solta os chamarizes) */
@@ -1045,8 +1059,8 @@ select{cursor:pointer}
      espalham. A peça no ar está na tela (o céu é fixo), com altitude z de 1 (voo) a 0 (chão); ao chegar a 0 passa para o
      chão (pecasC, seção 7). Cada peça é o próprio desenho da aeronave recortado: montada e desmontada são a mesma ===== */
   var pecasAr = [], GZ = 2 / (1900 * 1900); /* a queda de 1 até 0 leva ~1,9 s */
-  var ROTOR = {heli: {n: 4, r: 104, camadas: 4, alfa: 0.55, passo: 0.13, x0: 2, lw: 2, atraso: 0.07},
-               lb: {n: 5, r: 46, camadas: 3, alfa: 0.5, passo: 0.14, x0: 0, lw: 1.6, atraso: 0.08}};
+  var ROTOR = {heli: {n: 4, r: 206 / 14.7 * 14.6 / 2, camadas: 4, alfa: 0.55, passo: 0.13, x0: 2, lw: 2, atraso: 0.07},
+               lb: {n: 6, r: 93 / 7.49808 * 8.35152 / 2, camadas: 3, alfa: 0.5, passo: 0.14, x0: 0, lw: 1.6, atraso: 0.08}};
   function desenhaRotor(c, R, giro, cor){ for (var r2 = 0; r2 < R.camadas; r2++){ c.strokeStyle = cor || "rgba(239,233,221," + (R.alfa - r2 * R.passo) + ")"; c.lineWidth = r2 ? 1 : R.lw; c.beginPath();
       for (var pa = 0; pa < R.n; pa++){ var a = giro + pa * Math.PI * 2 / R.n - r2 * R.atraso; c.moveTo(R.x0, 0); c.lineTo(R.x0 + Math.cos(a) * R.r, Math.sin(a) * R.r); } c.stroke(); } }
   /* as partes de cada aeronave, em unidades do desenho: o recorte [x, y, largura, altura] e o ponto de encaixe (centro da peça solta) */
@@ -1075,11 +1089,11 @@ select{cursor:pointer}
     p.vz -= GZ * h * (p.parte === "rotor" ? 0.55 : 1); p.z += p.vz * h;
     p.w += p.wAc * h; if (p.parte === "rotor" && p.w < 0.006) p.wAc = 0; p.ang += p.w * h;
     var arrasto = 1 - 0.00035 * h; p.vx *= arrasto; p.vy *= arrasto;
-    p.x += p.vx * h; p.y += p.vy * h - p.vz * h * 70; /* caindo, desce na tela: a câmera vê o chão um pouco de lado */
+    p.x += p.vx * h; p.y += p.vy * h; /* vista ortografica: altitude nao muda escala nem desloca a projecao */
     if (p.fum && Math.random() < 0.035) fumaca.push({x: p.x, y: p.y, t: performance.now()}); }
   /* chegou ao chão: vira peça do chão (em coordenada da página); o corpo explode e solta as asas (ou os esquis) */
   function pousaAr(p){
-    var s = p.esc * 0.6, py = p.y + rolY, base = PARTES_AR[p.qual].corpo.em[0];
+    var s = p.esc, py = p.y + rolY, base = PARTES_AR[p.qual].corpo.em[0];
     if (p.parte === "corpo"){
       estouro(p.x, py, 2); destroco(p.x, py); SOM.toca("explosao", 0.35, p.x, 0.02);
       var ca = Math.cos(p.ang), sa = Math.sin(p.ang);
@@ -1096,13 +1110,15 @@ select{cursor:pointer}
     var c = H.c, w = H.w, h = H.h, agora = performance.now();
     /* o passo do quadro, em ms (e em "quadros de 60 Hz" para os chamarizes); o voo anda no passo fixo da física */
     var passo = H.ultQ ? Math.min(50, Math.max(0, agora - H.ultQ)) : 16.667, fq = passo / 16.667; H.ultQ = agora;
+    if (SOM) SOM.rotor([heli && !heli.caindo ? {x:heli.x,y:heli.y,vx:heli.vx,vy:heli.vy,kind:"heli"} : null,
+      lb && !lb.caindo ? {x:lb.x,y:lb.y,vx:lb.vx,vy:lb.vy,kind:"lb"} : null].filter(Boolean));
     var vazio = !heli && !lb && !chamarizes.length && !tiros.length && !fumaca.length && !danos.length && !pecasAr.length && !temCeu();
     if (vazio && !(agora > proximoHeli && !parado)){ if (H.sujo){ c.clearRect(0, 0, w, h); H.sujo = false; } mira.classList.remove("fogo"); H.acum = 0; return; }
     c.clearRect(0, 0, w, h); H.sujo = true;
     /* o que voa no céu da batalha: mísseis e traçantes contra as aeronaves, a fumaça deles e o Little Bird */
     desenhaCeu(c, t);
     if (lb){ if (lb.caindo){ desmontaAr(lb, "lb"); lb = null; proximoLB = tc + 20000 + Math.random() * 14000; }
-      else { var ib = lim(lb.banco, 1) * 0.3; c.save(); c.translate(lb.x, lb.y); c.rotate(lb.ang); c.scale(lb.esc, lb.esc * (1 - Math.abs(ib) * 0.25)); desenhaLB(c, t, lb === alvoLB ? "rgba(255,90,40,.95)" : "rgba(222,208,180,.85)"); c.restore();
+      else { lb.esc = escalaAr("lb"); sombraAr(c, lb, "lb"); var ib = lim(lb.banco, 1) * 0.3; c.save(); c.translate(lb.x, lb.y); c.rotate(lb.ang); c.scale(lb.esc, lb.esc * (1 - Math.abs(ib) * 0.25)); desenhaLB(c, t, lb === alvoLB ? "rgba(255,90,40,.95)" : "rgba(222,208,180,.85)"); c.restore();
         if (w >= 900){ c.font = "10px IBM Plex Mono, monospace"; c.fillStyle = "rgba(239,233,221,.45)"; c.fillText(lb.nome + (lb.hp < lb.hpMax ? " · ATINGIDO" : ""), lb.x - 50, lb.y - 64 * lb.esc); } } }
 
     /* traçantes: risco claro do mouse até onde foi, que some em 180 ms; no acerto, um clarão */
@@ -1140,12 +1156,12 @@ select{cursor:pointer}
     if (!parado){ H.acum = (H.acum || 0) + passo;
       while (H.acum >= PASSO_F){ H.acum -= PASSO_F; if (heli) voaAr(heli, PASSO_F, PH);
         for (var i = pecasAr.length - 1; i >= 0; i--){ var pa = pecasAr[i]; caiAr(pa, PASSO_F); if (pa.z <= 0){ pecasAr.splice(i, 1); pousaAr(pa); } } } }
-    pecasAr.forEach(function(p){ pintaParteAr(c, p.qual, p.parte, p.x, p.y, p.ang, p.esc * (0.6 + 0.4 * Math.max(0, p.z)), COR_BRASA); });
+    pecasAr.forEach(function(p){ pintaParteAr(c, p.qual, p.parte, p.x, p.y, p.ang, p.esc, COR_BRASA); });
     if (!heli) return;
 
     if (heli.atingido && Math.random() < 0.5 * Math.min(1, fq)) fumaca.push({x: heli.x - Math.cos(heli.ang) * 30, y: heli.y - Math.sin(heli.ang) * 30, t: agora});
     if (agora - heli.t0 > 4000 && (heli.x < -520 || heli.x > w + 520 || heli.y < -520 || heli.y > h + 520)){ heli = null; proximoHeli = agora + 16000 + Math.random() * 12000; mira.classList.remove("fogo"); return; }
-    var x = heli.x, y = heli.y, esc = heli.esc = Math.max(0.42, Math.min(0.75, w / 2100)), vh = velAr(heli), cor = travado ? "rgba(255,90,40,.95)" : "rgba(255,138,61,.85)";
+    var x = heli.x, y = heli.y, esc = heli.esc = escalaAr("heli"), vh = velAr(heli), cor = travado ? "rgba(255,90,40,.95)" : "rgba(255,138,61,.85)";
     var inclina = lim(heli.banco, 1) * 0.35, arf = lim(heli.arf, 1);
 
     /* extração: a corda desce até o convite */
@@ -1154,8 +1170,8 @@ select{cursor:pointer}
 
     /* inclinado na curva (estreita para o lado do banco, e a sombra corre para o lado) e de nariz baixo na arrancada
        (encurta um pouco e a sombra fica para trás) */
+    sombraAr(c, heli, "heli");
     c.save(); c.translate(x, y); c.rotate(heli.ang); c.scale(esc * (1 - Math.abs(arf) * 0.06), esc * (1 - Math.abs(inclina) * 0.25));
-    c.save(); c.translate(24 - arf * 10, 38 + inclina * 20); c.fillStyle = "rgba(0,0,0,.3)"; fuselagem(c); c.fill(); asas(c); c.fill(); c.restore();
     desenhaHeli(c, t, cor);
     desenhaRotor(c, ROTOR.heli, t * 0.035);
     c.fillStyle = "#ff8a3d"; c.beginPath(); c.arc(2, 0, 3, 0, Math.PI * 2); c.fill();
@@ -1175,73 +1191,160 @@ select{cursor:pointer}
   };
 
   /* ===================== 6. o som dos tiros ===================== */
-  /* Sintetizado na hora pela Web Audio, sem arquivo: ruído passado num filtro grave e um baque que cai de tom. Um filtro grave
-     no fim corta o agudo de tudo (o dono achou o tiro irritante: amarra 147), por isso ele sai abafado, nunca estridente. Só nasce depois do primeiro gesto do visitante, cala junto com
-     "Parar animações" (e com o pedido do sistema de menos movimento) e tem botão próprio, que lembra a escolha. */
+  /* D-50: síntese original, sem áudio do jogo nem arquivos externos. O estalo dura milissegundos;
+     o corpo e as reflexões graves dão distância. O barramento fica baixo, sem filtro de abafado.
+     Rotores seguem a posição/velocidade, entram e saem em rampa; tudo cala com a animação. */
   var SOM = (function(){
-    var ctx = null, mestre = null, ruido = null, ligado = true, tocados = 0, botao = document.getElementById("som");
+    var ctx = null, mestre = null, ligado = true, tocados = 0, botao = document.getElementById("som");
+    var VOLUME = 0.14, MAXV = 6, vozes = [], buffers = {}, rotores = {}, ultimoDo = {}, ultimoRotor = -1;
+    var TIPOS = {
+      fuzil:   {dur: 0.32, corpo: 148, queda: 0.048, estalo: 0.018, peso: 0.62, cauda: 0.09, pausa: 0.24},
+      cano25:  {dur: 0.48, corpo: 116, queda: 0.08,  estalo: 0.022, peso: 0.71, cauda: 0.18, pausa: 0.30},
+      aa:      {dur: 0.25, corpo: 176, queda: 0.045, estalo: 0.014, peso: 0.49, cauda: 0.08, pausa: 0.26},
+      impacto: {dur: 0.66, corpo: 91,  queda: 0.11,  estalo: 0.024, peso: 0.65, cauda: 0.24, pausa: 0.22},
+      canhao:  {dur: 1.65, corpo: 68,  queda: 0.22,  estalo: 0.028, peso: 0.85, cauda: 0.68, pausa: 0.65},
+      explosao:{dur: 2.50, corpo: 54,  queda: 0.32,  estalo: 0.032, peso: 0.90, cauda: 1.10, pausa: 0.55},
+      bazuca:  {dur: 0.95, corpo: 80,  queda: 0.14,  estalo: 0.026, peso: 0.65, cauda: 0.36, pausa: 0.60},
+      foguete: {dur: 0.72, corpo: 104, queda: 0.10,  estalo: 0.018, peso: 0.42, cauda: 0.27, pausa: 0.40},
+      missil:  {dur: 0.85, corpo: 87,  queda: 0.12,  estalo: 0.016, peso: 0.38, cauda: 0.32, pausa: 0.60},
+      flare:   {dur: 0.24, corpo: 210, queda: 0.033, estalo: 0.012, peso: 0.18, cauda: 0.07, pausa: 0.50}
+    };
     try { ligado = localStorage.getItem("xpirados-som") !== "0"; } catch (e) {}
-    /* a bazuca é um sopro longo e grave com baque, diferente do estalo curto do fuzil; o míssil é um chiado longo sem baque */
-    var TIPOS = {fuzil: [900, 0.16, 0.5, 120], impacto: [650, 0.22, 0.4, 85], canhao: [420, 0.6, 0.7, 62], aa: [1000, 0.08, 0.28, 150],
-                 foguete: [700, 0.5, 0.3, 0], explosao: [320, 1.3, 0.85, 48], bazuca: [520, 0.85, 0.55, 66], missil: [430, 1.2, 0.3, 0],
-                 flare: [1000, 0.2, 0.14, 0], cano25: [760, 0.2, 0.42, 96]}; /* corte do filtro (Hz), duração (s), volume, baque (Hz) */
-    /* com muita troca de tiro o som não empilha: no máximo MAXV tiros soando juntos, e o mesmo tiro de longe não se repete em
-       menos de 90 ms. O tiro do próprio visitante (força 0,9 ou mais) sempre toca */
-    /* testes do abafado (amarra 147): ?som=1, 2 ou 3 no endereço escolhe; sem ele vale o 1. corte multiplica o filtro de cada
-       tiro, teto é um filtro grave no fim de tudo (Hz), ataque é quanto o estalo demora a subir (s; mais lento, menos agressivo) */
-    var PERFIS = {"1": {corte: 0.6, teto: 750, ataque: 0.012, volume: 0.3},
-                  "2": {corte: 0.4, teto: 480, ataque: 0.02, volume: 0.28},
-                  "3": {corte: 0.25, teto: 300, ataque: 0.03, volume: 0.26}};
-    var PERFIL = PERFIS[(/[?&]som=([123])/.exec(location.search) || [])[1] || "1"];
-    var vozes = [], ultimoDo = {}, MAXV = poucas ? 4 : 6;
-    function prepara(){
-      if (!ctx){ var AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+    function permitido(){ return ctx && ligado && !parado && !document.hidden && ctx.state === "running"; }
+    function desconecta(nos){ nos.forEach(function(n){ try { n.disconnect(); } catch (e) {} }); }
+    function encerra(v){
+      if (v.fim) return; v.fim = true;
+      try { v.fonte.stop(); } catch (e) {}
+      desconecta(v.nos);
+    }
+    function limpa(){ vozes = vozes.filter(function(v){ return !v.fim; }); }
+    function cala(){
+      if (!ctx) return;
+      mestre.gain.cancelScheduledValues(ctx.currentTime); mestre.gain.setValueAtTime(0, ctx.currentTime);
+      vozes.forEach(encerra); vozes = [];
+      Object.keys(rotores).forEach(function(k){ encerra(rotores[k]); }); rotores = {};
+    }
+    /* Uma única geração por tipo. PRNG local deixa o timbre reproduzível e não altera o acaso da batalha.
+       Dois passa-baixas subtraídos formam o estalo; só os primeiros 12–32 ms contêm essa faixa aguda. */
+    function sintetiza(o, seed){
+      var n = Math.ceil(ctx.sampleRate * o.dur), b = ctx.createBuffer(1, n, ctx.sampleRate), d = b.getChannelData(0);
+      var sr = ctx.sampleRate, lo = 0, hi = 0, grave = 0, ca = 1 - Math.exp(-2 * Math.PI * 3100 / sr);
+      var cb = 1 - Math.exp(-2 * Math.PI * 850 / sr), cg = 1 - Math.exp(-2 * Math.PI * 155 / sr);
+      for (var i = 0; i < n; i++){
+        seed = (Math.imul(seed, 1664525) + 1013904223) | 0;
+        var rnd = (seed >>> 0) / 2147483648 - 1, t = i / sr;
+        hi += ca * (rnd - hi); lo += cb * (rnd - lo); grave += cg * (rnd - grave);
+        var ataque = Math.min(1, t / 0.003), fim = Math.min(1, (o.dur - t) / 0.08);
+        var fase = 2 * Math.PI * (o.corpo * 0.47 * t + o.corpo * 0.53 * 0.042 * (1 - Math.exp(-t / 0.042)));
+        var corpo = Math.sin(fase) * Math.exp(-t / o.queda);
+        var estalo = t < o.estalo ? (hi - lo) * Math.pow(1 - t / o.estalo, 2) * 1.7 : 0;
+        var cauda = (grave * 0.9 + Math.sin(2 * Math.PI * o.corpo * 0.43 * t) * 0.12) * Math.exp(-t / o.cauda);
+        var eco = 0;
+        [0.073, 0.137, 0.229].forEach(function(atraso, j){
+          var u = t - atraso;
+          if (u >= 0) eco += Math.sin(2 * Math.PI * o.corpo * 0.51 * u) * Math.min(1, u / 0.012) * Math.exp(-u / (o.queda * 0.8)) * (0.10 / (j + 1));
+        });
+        d[i] = Math.max(-0.95, Math.min(0.95, (corpo * 0.65 + estalo * 0.5 + cauda + eco) * ataque * fim * o.peso));
+      }
+      return b;
+    }
+    /* Tons periódicos inteiros: o laço de 2 s fecha sem emenda. Batida das pás (18/38 Hz),
+       motor discreto e harmônicos; não há fonte de ruído contínuo. */
+    function bufferRotor(kind){
+      var sr = ctx.sampleRate, n = sr * 2, b = ctx.createBuffer(1, n, sr), d = b.getChannelData(0), batida = kind === "lb" ? 38 : 18;
+      for (var i = 0; i < n; i++){
+        var t = i / sr, fase = 2 * Math.PI * batida * t, pulso = Math.pow((1 + Math.cos(fase)) * 0.5, 5);
+        d[i] = (0.22 + 0.78 * pulso) * (0.40 * Math.sin(fase * 2) + 0.14 * Math.sin(fase * 4) + 0.07 * Math.sin(2 * Math.PI * 126 * t)) + 0.10 * Math.sin(fase);
+      }
+      return b;
+    }
+    function prepara(ev){
+      if (!ctx){
+        if (!ev || !ev.isTrusted) return; // eventos sintéticos não são o primeiro gesto da pessoa
+        var AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
         try { ctx = new AC(); } catch (e) { return; }
-        var limite = ctx.createDynamicsCompressor(); limite.threshold.value = -20; limite.ratio.value = 6; limite.connect(ctx.destination);
-        var teto = ctx.createBiquadFilter(); teto.type = "lowpass"; teto.Q.value = 0.5; teto.frequency.value = PERFIL.teto; teto.connect(limite);
-        mestre = ctx.createGain(); mestre.gain.value = PERFIL.volume; mestre.connect(teto);
-        var n = Math.round(ctx.sampleRate * 1.5), d; ruido = ctx.createBuffer(1, n, ctx.sampleRate); d = ruido.getChannelData(0); for (var i = 0; i < n; i++) d[i] = Math.random() * 2 - 1; }
+        var limite = ctx.createDynamicsCompressor(); limite.threshold.value = -17; limite.knee.value = 18;
+        limite.ratio.value = 5; limite.attack.value = 0.004; limite.release.value = 0.25; limite.connect(ctx.destination);
+        mestre = ctx.createGain(); mestre.gain.value = 0; mestre.connect(limite);
+        Object.keys(TIPOS).forEach(function(k, i){ buffers[k] = sintetiza(TIPOS[k], 5001 + i * 131); });
+        buffers.rotorHeli = bufferRotor("heli"); buffers.rotorLB = bufferRotor("lb");
+      }
       ajusta();
     }
-    function ajusta(){ if (botao){ botao.setAttribute("aria-pressed", ligado ? "true" : "false"); botao.textContent = ligado ? "Som" : "Sem som"; }
-      if (!ctx) return; if (ligado && !parado && !document.hidden){ if (ctx.state === "suspended") ctx.resume(); } else if (ctx.state === "running") ctx.suspend(); }
-    function estampido(o, forca, pan, atraso){
-      var t = ctx.currentTime + (atraso || 0), vol = o[2] * forca, saida = ctx.createGain(), p = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
-      if (p){ p.pan.value = pan; saida.connect(p); p.connect(mestre); } else saida.connect(mestre);
-      var fonte = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain(); fonte.buffer = ruido;
-      var corte = o[0] * PERFIL.corte;
-      f.type = "lowpass"; f.Q.value = 0.7; f.frequency.setValueAtTime(corte, t); f.frequency.exponentialRampToValueAtTime(Math.max(40, corte * 0.3), t + o[1]);
-      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + PERFIL.ataque); g.gain.exponentialRampToValueAtTime(0.0001, t + o[1]);
-      fonte.connect(f); f.connect(g); g.connect(saida); fonte.start(t, Math.random(), o[1] + 0.05);
-      if (o[3]){ var s = ctx.createOscillator(), gs = ctx.createGain(); s.type = "sine"; s.frequency.setValueAtTime(o[3], t); s.frequency.exponentialRampToValueAtTime(o[3] * 0.45, t + o[1] * 0.8);
-        gs.gain.setValueAtTime(0.0001, t); gs.gain.exponentialRampToValueAtTime(vol * 0.9, t + PERFIL.ataque); gs.gain.exponentialRampToValueAtTime(0.0001, t + o[1] * 0.9);
-        s.connect(gs); gs.connect(saida); s.start(t); s.stop(t + o[1]); }
+    function ajusta(){
+      if (botao){ botao.setAttribute("aria-pressed", ligado ? "true" : "false"); botao.textContent = ligado ? "Som" : "Sem som"; }
+      if (!ctx) return;
+      if (ligado && !parado && !document.hidden){
+        mestre.gain.cancelScheduledValues(ctx.currentTime); mestre.gain.setTargetAtTime(VOLUME, ctx.currentTime, 0.06);
+        if (ctx.state === "suspended") ctx.resume().catch(function(){});
+      } else { cala(); if (ctx.state === "running") ctx.suspend().catch(function(){}); }
     }
-    /* pointerup e touchend, não pointerdown: no toque o navegador só libera o som quando o dedo sobe */
+    function canal(buffer, pan, volume, loop){
+      var fonte = ctx.createBufferSource(), ganho = ctx.createGain(), p = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+      fonte.buffer = buffer; fonte.loop = !!loop; ganho.gain.value = volume;
+      fonte.connect(ganho); if (p){ p.pan.value = pan; ganho.connect(p); p.connect(mestre); } else ganho.connect(mestre);
+      var v = {fonte: fonte, ganho: ganho, pan: p, nos: p ? [fonte, ganho, p] : [fonte, ganho], fim: false};
+      fonte.onended = function(){ v.fim = true; desconecta(v.nos); }; return v;
+    }
     ["pointerup", "touchend", "click", "keydown"].forEach(function(ev){ addEventListener(ev, prepara, {passive: true}); });
-    if (botao) botao.addEventListener("click", function(){ ligado = !ligado; try { localStorage.setItem("xpirados-som", ligado ? "1" : "0"); } catch (e) {} prepara(); });
-    document.addEventListener("visibilitychange", ajusta);
-    ajusta();
-    return {ajusta: ajusta, estado: function(){ return {ctx: ctx ? ctx.state : "nenhum", ligado: ligado, tocados: tocados, perfil: PERFIL}; },
-      /* forca: 1 para o tiro do visitante; os blindados entre si soam de longe, mais baixo */
-      toca: function(tipo, forca, x, atraso){ if (!ctx || !ligado || parado || document.hidden || ctx.state !== "running") return;
-        var f = forca == null ? 1 : forca, agora = ctx.currentTime, o = TIPOS[tipo];
-        vozes = vozes.filter(function(fim){ return fim > agora; });
-        if (f < 0.9 && (vozes.length >= MAXV || agora - (ultimoDo[tipo] == null ? -1 : ultimoDo[tipo]) < 0.09)) return;
-        ultimoDo[tipo] = agora; vozes.push(agora + (atraso || 0) + o[1]); tocados++;
-        estampido(o, f, Math.max(-0.6, Math.min(0.6, (x / Math.max(1, innerWidth)) * 1.2 - 0.6)), atraso); }};
+    if (botao) botao.addEventListener("click", function(ev){ ligado = !ligado;
+      try { localStorage.setItem("xpirados-som", ligado ? "1" : "0"); } catch (e) {} prepara(ev); });
+    document.addEventListener("visibilitychange", ajusta); ajusta();
+    return {
+      ajusta: ajusta,
+      estado: function(){ limpa(); var keys = Object.keys(rotores); return {ctx: ctx ? ctx.state : "nenhum", ligado: ligado, tocados: tocados,
+        volume: VOLUME, ganho: mestre ? mestre.gain.value : 0, vozes: vozes.length, maxVozes: MAXV,
+        rotor: {ativos: keys.length, nivel: keys.reduce(function(n, k){ return n + rotores[k].nivel; }, 0)}}; },
+      toca: function(tipo, forca, x, atraso){
+        if (!permitido() || !TIPOS[tipo]) return;
+        var f = Math.max(0, Math.min(1, forca == null ? 1 : forca)), agora = ctx.currentTime, o = TIPOS[tipo]; limpa();
+        if (f < 0.9 && agora - (ultimoDo[tipo] == null ? -10 : ultimoDo[tipo]) < o.pausa) return;
+        if (vozes.length >= MAXV){
+          if (f < 0.9) return;
+          var distante = vozes.find(function(v){ return v.forca < 0.9; });
+          encerra(distante || vozes[0]); limpa();
+        }
+        var pan = Math.max(-0.7, Math.min(0.7, (x / Math.max(1, innerWidth)) * 1.4 - 0.7));
+        var v = canal(buffers[tipo], pan, f, false); v.forca = f; vozes.push(v);
+        ultimoDo[tipo] = agora; tocados++; v.fonte.start(agora + Math.max(0, Math.min(1, atraso || 0)));
+      },
+      rotor: function(aeronaves){
+        if (!permitido()) return;
+        var agora = ctx.currentTime; if (agora - ultimoRotor < 0.045) return; ultimoRotor = agora;
+        var presentes = {};
+        (aeronaves || []).forEach(function(a){
+          var kind = a.kind === "lb" ? "lb" : "heli", dx = (a.x - innerWidth / 2) / Math.max(1, innerWidth / 2);
+          var dy = (a.y - innerHeight / 2) / Math.max(1, innerHeight / 2), dist = Math.sqrt(dx * dx + dy * dy + 0.36);
+          var fora = Math.max(0, -a.x, a.x - innerWidth, -a.y, a.y - innerHeight);
+          var nivel = (kind === "lb" ? 0.19 : 0.24) / (1 + dist * dist * 1.8) * Math.exp(-fora / 130);
+          presentes[kind] = true;
+          var r = rotores[kind]; if (!r && nivel > 0.001){
+            r = rotores[kind] = canal(kind === "lb" ? buffers.rotorLB : buffers.rotorHeli, 0, 0, true); r.fonte.start();
+          }
+          if (!r) return;
+          r.nivel = nivel; r.ausente = null; r.ganho.gain.setTargetAtTime(nivel, agora, 0.32);
+          if (r.pan) r.pan.pan.setTargetAtTime(Math.max(-0.7, Math.min(0.7, dx * 0.7)), agora, 0.25);
+          var radial = (dx * (a.vx || 0) + dy * (a.vy || 0)) / dist;
+          r.fonte.playbackRate.setTargetAtTime(Math.max(0.94, Math.min(1.06, 1 - radial * 0.12)), agora, 0.35);
+        });
+        Object.keys(rotores).forEach(function(k){ var r = rotores[k]; if (presentes[k]) return;
+          if (r.ausente == null){ r.ausente = agora; r.nivel = 0; r.ganho.gain.setTargetAtTime(0, agora, 0.42); }
+          if (agora - r.ausente > 3){ encerra(r); delete rotores[k]; }
+        });
+      }
+    };
   })();
 
   /* ===================== 7. a batalha no chão ===================== */
   /* A página vira uma batalha ao fundo, espaçada (amarra 126). Duas forças, a laranja (entra pela esquerda) e a de areia (pela
      direita), cada uma com esquadras de infantaria, um M3A3 Bradley e um Cheetah 1A2 (no celular, um blindado de cada força).
-     No ar, o helicóptero de ataque (HELO-1) e, de vez em quando, um AH-6 Little Bird de passagem, inimigos de quem está no
+     No ar, o helicóptero de ataque (HELO-1) e um AH-6 Little Bird caçando em passadas, inimigos de quem está no
      chão. Tudo anda só em chão livre (a grade PISO, medida do layout), por baixo do texto, e a camada rola com a página.
      Vida e dano são os do jogo, lidos pela ARSENAL (tabela ARMAS); o tiro do visitante continua 400 a 650 sorteado
      (amarra 120). O relógio próprio (tc) só anda enquanto a aba desenha e a página não está parada. */
   var C = tela(document.getElementById("chao"), {fixo: true}), tc = 0, ultT = -1, ultRol = 0, desceu = true;
   var chaoPerto = false, travaChao = false, alvoLB = null, projeteis = [], faiscas = [], fumacaC = [], clarao = [], danosC = [], cortinas = [];
-  var contagem = {fuzil: 0, bazuca: 0, missil: 0, bradley: 0, tow: 0, canhao: 0, aa: 0, missilAA: 0, heli: 0, visitante: 0, iscas: 0, curados: 0, abatidosAr: 0, acertos: {}};
+  var contagem = {fuzil: 0, bazuca: 0, missil: 0, bradley: 0, tow: 0, canhao: 0, aa: 0, missilAA: 0, heli: 0, visitante: 0, iscas: 0, curados: 0, abatidosAr: 0, lbPassadas: 0, lbTiros: 0, lbFoguetes: 0, lbAbates: 0, acertos: {}};
   var acertosB = 0, destruidosB = 0, hudBlind = document.getElementById("hud-blind"), calado = false /* só o teste cala a batalha */;
   var PX_M = 5; /* 1 metro do jogo = 5 px do mapa: o soldado visto de cima tem uns 12 px */
 
@@ -1362,12 +1465,13 @@ select{cursor:pointer}
     estouro(v.x, v.y, doVisitante || n >= 100 ? 1 : 0); SOM.toca("impacto", doVisitante ? 0.9 : 0.3, v.x);
     if (v.hp <= 0){ desmonta(v); v.estado = "morto"; v.morreu = tc; v.volta = tc + 14000 + Math.random() * 6000; v.vel = v.velDes = v.w = 0; estouro(v.x, v.y, 2); SOM.toca("explosao", doVisitante ? 0.9 : 0.45, v.x, 0.06); if (doVisitante) destruidosB++; }
     hudB(); }
-  function danoS(s, n, doVisitante){ if (s.estado !== "vivo") return; s.hp -= n; s.atingido = tc;
+  function danoS(s, n, doVisitante, origem){ if (s.estado !== "vivo") return; s.hp -= n; s.atingido = tc;
     if (s.hp > 0) return;
+    s.origemMorte = origem || "outro"; if (origem === "lb") contagem.lbAbates++;
     s.estado = "caido"; s.caiu = tc; s.cura = s.curando = null; if (doVisitante){ abatidos++; hud(); }
     var q = s.q; if (!q.fumou){ q.fumou = true; var c0 = centro(q); cortina(c0.x, c0.y); } }
-  function respingo(x, y, A, poupa){ var R = A.soldado[2] * PX_M; if (!R) return;
-    soldados.forEach(function(s){ if (s === poupa || s.estado !== "vivo") return; var d = Math.hypot(s.x - x, s.y - y); if (d < R) danoS(s, A.soldado[1] * (1 - d / R)); }); }
+  function respingo(x, y, A, poupa, origem){ var R = A.soldado[2] * PX_M; if (!R) return;
+    soldados.forEach(function(s){ if (s === poupa || s.estado !== "vivo") return; var d = Math.hypot(s.x - x, s.y - y); if (d < R) danoS(s, A.soldado[1] * (1 - d / R), false, origem); }); }
 
   /* ---- os disparos: tudo sai de "de" para o alvo; bala é ponto, foguete e míssil deixam fumaça. O sem guia voa reto até o
      ponto onde vai encontrar o alvo (a dianteira, calculada no disparo); o guiado persegue a aeronave com raio de curva
@@ -1384,7 +1488,7 @@ select{cursor:pointer}
     var V = VOO[arma], q = posDe(alvo), ar = ehAr(alvo), ponto;
     if (!acerto){ var a = Math.random() * 6.283, l = V.tipo === "bala" ? 10 + Math.random() * 24 : V.tipo === "aa" ? 90 + Math.random() * 160 : 30 + Math.random() * 30; ponto = {x: q.x + Math.cos(a) * l, y: q.y + Math.sin(a) * l}; }
     else ponto = V.guiado ? q : dianteira(de, alvo, V.vel);
-    var p = {arma: arma, V: V, de: {x: de.x, y: de.y, ar: !!de.ar}, alvo: alvo, acerto: acerto, x: de.x, y: de.y, tx: ponto.x, ty: ponto.y, t: tc, idade: 0, ult: 0, ar: ar,
+    var p = {arma: arma, V: V, de: {x: de.x, y: de.y, ar: !!de.ar, origem: de.origem}, alvo: alvo, acerto: acerto, x: de.x, y: de.y, tx: ponto.x, ty: ponto.y, t: tc, idade: 0, ult: 0, ar: ar,
       ang: Math.atan2(ponto.y - de.y, ponto.x - de.x), guia: !!(V.guiado && acerto), resta: Math.hypot(ponto.x - de.x, ponto.y - de.y)};
     /* o piloto vê o míssil e reage em 0,3 a 0,6 s: solta flare se tiver */
     if (V.guiado && ar && acerto && !alvo.reage) alvo.reage = performance.now() + 300 + Math.random() * 300;
@@ -1413,9 +1517,9 @@ select{cursor:pointer}
       contagem.acertos[p.arma] = (contagem.acertos[p.arma] || 0) + 1;
       if (ehAr(alvo)){ danoAr(alvo, A.ar, false); clarao.push({x: p.x, y: p.y, r: p.V.tipo === "aa" ? 12 : 30, t: tc, dur: 280, ar: true}); if (p.V.tipo !== "aa") SOM.toca("impacto", 0.3, alvo.x); return; }
       if (alvo.hpMax){ danoV(alvo, A[zona(alvo, p.de)], false); return; }
-      danoS(alvo, A.soldado[0] + A.soldado[1]); if (expl){ estouro(p.x, p.y, 0); respingo(p.x, p.y, A, alvo); } return; }
+      danoS(alvo, A.soldado[0] + A.soldado[1], false, p.de.origem); if (expl){ estouro(p.x, p.y, 0); respingo(p.x, p.y, A, alvo, p.de.origem); } return; }
     if (p.ar) return;
-    if (expl || p.V.tipo === "foguete" || p.V.tipo === "missil"){ estouro(p.x, p.y, 0); respingo(p.x, p.y, A, null); SOM.toca("impacto", 0.15, p.x); } }
+    if (expl || p.V.tipo === "foguete" || p.V.tipo === "missil"){ estouro(p.x, p.y, 0); respingo(p.x, p.y, A, null, p.de.origem); SOM.toca("impacto", 0.15, p.x); } }
 
   /* ---- os blindados: entram pelo lado da sua força, já rodando, numa linha de chão livre, e escolhem para onde ir só onde a
      rota é livre. A cabeça (andaVeiculo, a cada quadro) diz o rumo, a velocidade e a mira que quer; quem anda é a física
@@ -1624,16 +1728,77 @@ select{cursor:pointer}
     else { lanca("hydra", de, alvoS, Math.random() < 0.5); lanca("hydra", {x: hx + Math.sin(heli.ang) * l * e, y: hy - Math.cos(heli.ang) * l * e, ar: true}, alvoS, Math.random() < 0.5); }
     SOM.toca("foguete", 0.3, hx); }
 
-  /* ---- o Little Bird: passa de um lado ao outro sem parar, num rumo que oscila um pouco; não atira, é alvo ---- */
-  function novoLB(){ var w = C.w, h = C.h, daEsq = Math.random() < 0.5, vel = Math.max(0.13, w / 5200);
+  /* D-50: escolhe a esquadra mais concentrada ou um blindado em manobra. A IA
+     pede velocidades; voaAr conserva os limites de aceleracao, giro e banco. */
+  var cacaLBAtiva = true, provaLB = null;
+  function novoLB(){ var w = C.w, h = C.h, daEsq = Math.random() < 0.5, vel = Math.min(0.18, Math.max(0.13, w / 9000));
     return aeronave({nome: "AH-6 LITTLE BIRD", x: daEsq ? -140 : w + 140, y: h * (0.2 + Math.random() * 0.45), ang: daEsq ? 0 : Math.PI, rumo: daEsq ? 0 : Math.PI, vel: vel,
-      hp: VIDA.littlebird, hpMax: VIDA.littlebird, flareAte: 0, t0: tc, esc: Math.max(0.5, Math.min(0.8, w / 2000))}, vel); }
+      hp: VIDA.littlebird, hpMax: VIDA.littlebird, altitude: ALTITUDE_AR, flareAte: 0, t0: tc, esc: escalaAr("lb"), estado: "busca", faseEm: tc, proxima: tc}, vel); }
+  function alvoBird(a){
+    var melhor = null, nota = -Infinity;
+    soldados.forEach(function(s){ if (s.estado !== "vivo" || !naVista(s.y, 20) || s.x < 0 || s.x > C.w) return;
+      var grupo = soldados.filter(function(b){ return b.estado === "vivo" && Math.hypot(b.x-s.x, b.y-s.y) < 75; }).length;
+      var n = grupo * 150 - Math.hypot(a.x-s.x, a.y+rolY-s.y) * 0.25;
+      if (n > nota){ nota = n; melhor = s; } });
+    blindados.forEach(function(v){ if (v.estado !== "vivo" || !naVista(v.y, 20) || v.x < 0 || v.x > C.w || Math.abs(v.vel) < 0.003) return;
+      var n = 260 - Math.hypot(a.x-v.x, a.y+rolY-v.y) * 0.25;
+      if (n > nota){ nota = n; melhor = v; } });
+    return melhor;
+  }
+  function pontoBird(alvo){ var p = posDe(alvo); return {x: p.x, y: p.y - rolY}; }
+  function iniciaPassada(a){
+    var p = pontoBird(a.alvo), an = Math.atan2(p.y-a.y, p.x-a.x);
+    a.eixo = an; a.fim = {x: p.x + Math.cos(an)*145, y: p.y + Math.sin(an)*145};
+    a.estado = "passada"; a.faseEm = tc; a.balas = 6; a.foguetes = 2; a.proxTiro = tc; a.proxFoguete = tc + 1100;
+    contagem.lbPassadas++;
+  }
+  function atiraBird(a){
+    if (!vivoAlvo(a.alvo)){ a.alvo = alvoBird(a); if (!a.alvo) return; }
+    var p = pontoBird(a.alvo), d = Math.hypot(p.x-a.x,p.y-a.y), an = Math.atan2(p.y-a.y,p.x-a.x);
+    if (d > 310 || Math.abs(difAng(an,a.ang)) > 1.15) return;
+    var e = a.esc, l = (a.balas % 2 ? -22 : 22) * e;
+    var de = {x: a.x + Math.cos(a.ang)*19*e - Math.sin(a.ang)*l, y: a.y+rolY + Math.sin(a.ang)*19*e + Math.cos(a.ang)*l, ar: true, origem: "lb"};
+    /* A metralhadora visual usa a balistica/dano ja conferidos do m4a1; nao inventa uma tabela do jogo. */
+    if (!a.alvo.hpMax && a.balas > 0 && tc >= a.proxTiro){
+      a.balas--; a.proxTiro = tc + 180; lanca("m4a1",de,a.alvo,Math.random() < 0.82); contagem.lbTiros++;
+      clarao.push({x:de.x,y:de.y,r:8,t:tc,dur:90,ar:true}); SOM.toca("fuzil",0.17,a.x);
+    }
+    if (a.foguetes > 0 && tc >= a.proxFoguete){
+      a.foguetes--; a.proxFoguete = tc + 550; lanca("hydra",de,a.alvo,Math.random() < 0.88); contagem.lbFoguetes++; SOM.toca("foguete",0.22,a.x);
+    }
+  }
   function andaLB(){
     if (!lb){ if (!calado && tc > proximoLB && faixaY()[1] - faixaY()[0] > 60) lb = novoLB(); return; }
     if (lb.caindo) return;
-    var rumo = lb.rumo + Math.sin((tc - lb.t0) * 0.0009 + lb.fase) * 0.12; lb.vd.x = Math.cos(rumo) * lb.vel; lb.vd.y = Math.sin(rumo) * lb.vel;
-    if (lb.atingido && Math.random() < 0.3) fumaca.push({x: lb.x - Math.cos(lb.ang) * 20, y: lb.y - Math.sin(lb.ang) * 20, t: performance.now()});
-    if (tc - lb.t0 > 3000 && (lb.x < -220 || lb.x > C.w + 220)){ lb = null; proximoLB = tc + 20000 + Math.random() * 16000; } }
+    lb.esc = escalaAr("lb");
+    if (lb.atingido) lb.estado = "fuga";
+    if (calado || !cacaLBAtiva){ var rumo = lb.rumo + Math.sin((tc-lb.t0)*0.0009+lb.fase)*0.12; lb.vd.x = Math.cos(rumo)*lb.vel; lb.vd.y = Math.sin(rumo)*lb.vel; }
+    else if (lb.estado === "fuga") quer(lb,{x:Math.cos(lb.rumo)>=0?C.w+400:-400,y:lb.y-90},0.26,0,PLB);
+    else {
+      if (!vivoAlvo(lb.alvo) || !naVista(lb.alvo.y,0)) lb.alvo = alvoBird(lb);
+      if (!lb.alvo){ lb.estado = "fuga"; }
+      else {
+        var p = pontoBird(lb.alvo), d = Math.hypot(p.x-lb.x,p.y-lb.y);
+        if (lb.estado === "busca"){
+          quer(lb,p, d > 270 ? lb.vel : 0.075,65,PLB); lb.angAlvo = Math.atan2(p.y-lb.y,p.x-lb.x);
+          if (tc >= lb.proxima && d < 230 && Math.abs(difAng(lb.angAlvo,lb.ang)) < 0.8) iniciaPassada(lb);
+        } else if (lb.estado === "passada"){
+          quer(lb,lb.fim,0.065,0,PLB); atiraBird(lb);
+          if (tc-lb.faseEm > 3000 && (Math.hypot(lb.fim.x-lb.x,lb.fim.y-lb.y)<55 || tc-lb.faseEm>5000)){
+            lb.estado = "retorno"; lb.faseEm = tc; lb.proxima = tc+3500;
+            lb.retorno = {x:p.x-Math.cos(lb.eixo)*130-Math.sin(lb.eixo)*110,y:p.y-Math.sin(lb.eixo)*130+Math.cos(lb.eixo)*110};
+          }
+        } else if (lb.estado === "retorno"){
+          quer(lb,lb.retorno,0.105,10,PLB);
+          if (tc>=lb.proxima && (Math.hypot(lb.retorno.x-lb.x,lb.retorno.y-lb.y)<55 || tc-lb.faseEm>6500)) lb.estado = "busca";
+        }
+      }
+    }
+    if (lb.atingido && Math.random()<0.3) fumaca.push({x:lb.x-Math.cos(lb.ang)*20,y:lb.y-Math.sin(lb.ang)*20,t:performance.now()});
+    if ((lb.estado === "fuga" || calado || !cacaLBAtiva) && tc-lb.t0>3000 && (lb.x < -220 || lb.x > C.w+220 || lb.y < -220 || lb.y > C.h+220)){
+      lb=null; proximoLB=tc+20000+Math.random()*16000;
+    }
+  }
   /* o piloto reage ao míssil: com flare pronto, os mísseis que vêm nele perdem o alvo; sem flare, ele é atingido */
   function reacoes(){ var agora = performance.now();
     [heli, lb].forEach(function(a){ if (!a || !a.reage || agora < a.reage) return; a.reage = 0;
@@ -1751,7 +1916,6 @@ select{cursor:pointer}
     c.restore(); c.globalAlpha = 1; }
   /* AH-6 Little Bird visto de cima: cabine em gota com o vidro na frente, esquis, suportes com as metralhadoras, cauda fina em T e o rotor pequeno */
   function desenhaLB(c, t, cor, solto){
-    if (!solto){ c.save(); c.translate(16, 28); c.fillStyle = "rgba(0,0,0,.28)"; c.beginPath(); c.ellipse(6, 0, 23, 12, 0, 0, 6.3); c.fill(); c.fillRect(-60, -2, 46, 4); c.restore(); }
     c.strokeStyle = cor; c.fillStyle = "rgba(12,13,15,.9)"; c.lineWidth = 1.3; c.lineJoin = "round";
     [-1, 1].forEach(function(l){ c.beginPath(); c.moveTo(-14, l * 16); c.lineTo(26, l * 16); c.quadraticCurveTo(32, l * 16, 33, l * 13); c.stroke();
       c.beginPath(); c.moveTo(-5, l * 16); c.lineTo(-3, l * 10); c.moveTo(16, l * 16); c.lineTo(14, l * 10); c.stroke();
@@ -1891,13 +2055,42 @@ select{cursor:pointer}
     /* destrói na hora "tanque" (o Bradley), "abrams", "aa" (o Cheetah), "heli" ou "lb" (para as fotos do desmonte) */
     destroi: function(qual){ if (qual === "heli" || qual === "lb"){ var a = qual === "heli" ? heli : lb; if (!a) return false; danoAr(a, a.hp + 1, false); return true; }
       var v = primeiro(qual === "aa" ? "cheetah" : qual === "abrams" ? "abrams" : "bradley"); if (!v || v.estado !== "vivo") return false; danoV(v, v.hp + 1, false); return true; },
-    lb: function(){ return lb ? {x: lb.x, y: lb.y, hp: lb.hp, caindo: !!lb.caindo, flare: Math.max(0, lb.flareAte - performance.now()), visto: naTelaAr(lb)} : null; },
+    lb: function(){ return lb ? {estado: lb.estado, esc: lb.esc, vx: lb.vx, vy: lb.vy, w: lb.w, x: lb.x, y: lb.y, hp: lb.hp, caindo: !!lb.caindo, flare: Math.max(0, lb.flareAte - performance.now()), visto: naTelaAr(lb)} : null; },
     /* um soldado da batalha vivo, na tela e em chão livre (o clique nele tem de derrubá-lo; andando, ele mal sai do lugar) */
     soldadoNaTela: function(){ var s = soldados.filter(function(s){ var y = s.y - rolY, el = document.elementFromPoint(s.x, y);
         return s.estado === "vivo" && y > 90 && y < C.h - 90 && s.x > 30 && s.x < C.w - 30 && noChao(el); })[0];
       return s ? {x: s.x, y: s.y - rolY} : null; },
     tocaSom: function(tipo, forca){ SOM.toca(tipo, forca == null ? 0.5 : forca, 100); return SOM.estado().tocados; },
-    som: function(){ return SOM.estado(); } };
+    som: function(){ return SOM.estado(); },
+    escalaAr: function(){ var m=11*ev(); return {projecao:"ortografica",altitude:ALTITUDE_AR,pxM:m,
+      heli:{corpo:206*escalaAr("heli"),rotor:2*ROTOR.heli.r*escalaAr("heli"),esc:escalaAr("heli")},
+      lb:{corpo:93*escalaAr("lb"),rotor:2*ROTOR.lb.r*escalaAr("lb"),esc:escalaAr("lb")},
+      sombra:{deslocamento:ALTITUDE_AR/Math.tan(SOL_AR)*m,solGraus:85},
+      chao:{abrams:XPVeiculos.medidas.abrams.casco.comprimento*ev(),bradley:XPVeiculos.medidas.bradley.casco.comprimento*ev(),cheetah:XPVeiculos.medidas.cheetah.comprimento*ev()}}; },
+    preparaCacaLB: function(ativa){
+      calado=false; cacaLBAtiva=ativa!==false; heli=null; proximoHeli=performance.now()+1e9; heliProx=tc+1e9;
+      blindados.forEach(function(v){v.estado="reserva";v.volta=tc+1e9;});
+      soldados=[]; esquadras=[]; projeteis=[]; cortinas=[]; proxPop=tc+1e9;
+      var fy=faixaY(), p=null;
+      for(var k=0;k<100&&!p;k++) p=lugar(false,fy[0]+40,fy[1]-40,C.w*.3,C.w*.7);
+      if(!p) throw new Error("D50: sem chao para a esquadra");
+      var q={time:0,membros:[],meta:p,rumo:0,estado:"abrigo",ate:tc+1e9,saiu:tc,fumou:false};
+      for(var i=0;i<4;i++){var s0={q:q,time:0,papel:"fuzil",x:p.x+FORM[i][0],y:p.y+FORM[i][1],ang:0,hp:VIDA.soldado,estado:"vivo",nasceu:tc,disparou:-1e9,rajada:0,prox:tc+1e9,proxP:tc+1e9};q.membros.push(s0);soldados.push(s0);}
+      esquadras.push(q); contagem.lbPassadas=contagem.lbTiros=contagem.lbFoguetes=contagem.lbAbates=0;
+      lb=novoLB(); lb.x=p.x-170;lb.y=p.y-rolY-30;lb.rumo=lb.ang=0;lb.vx=lb.vd.x=0.1;lb.vy=lb.vd.y=0;
+      provaLB={inicio:tc,alvos:soldados.slice()};return true;
+    },
+    cacaLB: function(){return {tempo:provaLB?tc-provaLB.inicio:0,passadas:contagem.lbPassadas,tiros:contagem.lbTiros,foguetes:contagem.lbFoguetes,abates:contagem.lbAbates,
+      alvos:provaLB?provaLB.alvos.map(function(s){return {hp:s.hp,estado:s.estado,origemMorte:s.origemMorte||null};}):[],
+      lb:lb?{x:lb.x,y:lb.y,vx:lb.vx,vy:lb.vy,w:lb.w,estado:lb.estado,esc:lb.esc}:null};},
+    fotoEscala: function(){
+      calado=true; projeteis=[]; soldados=[]; esquadras=[];
+      var usados=[], y=C.h*.44, nomes=["abrams","bradley","cheetah"];
+      blindados.forEach(function(v){v.estado="reserva";});
+      nomes.forEach(function(n,i){var v=blindados.find(function(b){return usados.indexOf(b)<0&&b.tipos.indexOf(n)>=0;});usados.push(v);poeTipo(v,n);nasceVeiculo(v);v.estado="vivo";v.x=C.w*(.25+i*.25);v.y=y+rolY;v.ang=v.torre=v.torreDes=0;v.vel=v.velDes=v.w=v.wDes=0;v.alvo={x:v.x,y:v.y};v.espera=v.prox=v.proxM=tc+1e9;v.rajada=0;});
+      heli=novoHeli("caca");heli.x=C.w*.32;heli.y=y-120;heli.ang=0;heli.vx=heli.vy=heli.vd.x=heli.vd.y=0;heli.saida={x:heli.x,y:heli.y};
+      lb=novoLB();lb.x=C.w*.68;lb.y=y-120;lb.ang=0;lb.vel=0;lb.vx=lb.vy=lb.vd.x=lb.vd.y=0;return true;
+    } };
 })();
 </script>
 <script type="module">
