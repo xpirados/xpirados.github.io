@@ -16,7 +16,7 @@ export function criar(T){
   c.fillStyle='#3d4337';c.font='bold 26px sans-serif';c.fillText(lado?'CAMPO / FIELD':'DICIONÁRIO',44,67);
   c.fillStyle='#a65c34';c.fillRect(44,85,W-88,4);
   const termos=lado?['FLANK','COVER','SQUAD']:['FLANCO','COBERTURA','ESQUADRÃO'];
-  termos.forEach((t,i)=>{const y=150+i*119;c.fillStyle='#30372d';c.font='bold 34px sans-serif';c.fillText(t,44,y);c.fillStyle='#686d59';c.font='17px sans-serif';c.fillText(lado?['Flanco · Flank','Cobertura · Cover','Escuadrón · Squad'][i]:['PT / ES / EN','Termos da partida','Vocabulário do clã'][i],44,y+32);c.strokeStyle='#a99b7b';c.beginPath();c.moveTo(44,y+55);c.lineTo(W-44,y+55);c.stroke();});
+  termos.forEach((t,i)=>{const y=150+i*119;c.fillStyle='#30372d';c.font='bold 34px sans-serif';c.fillText(t,44,y);c.fillStyle='#686d59';c.font='17px sans-serif';c.fillText(lado?['Flanco · Flank','Cobertura · Cover','Escuadrón · Squad'][i]:['PT / ES / EN','Termos da partida','Vocabulário da comunidade'][i],44,y+32);c.strokeStyle='#a99b7b';c.beginPath();c.moveTo(44,y+55);c.lineTo(W-44,y+55);c.stroke();});
   c.font='16px monospace';c.fillStyle='#696c55';c.fillText(lado?'037':'036',W-75,H-40);
  };
  for(const lado of [-1,1])superficie(livro,1.76,2.16,[lado*.94,.001,0],pintar(lado===1),[-Math.PI/2,0,0],512,640);

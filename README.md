@@ -1,6 +1,6 @@
 # Arquivo XPirados
 
-Site do clã XPirados (Battlefield 6), publicado pelo GitHub Pages em https://xpirados.github.io/
+Site da comunidade XPirados (Battlefield 6), publicado pelo GitHub Pages em https://xpirados.github.io/
 
 | Página | O que é |
 |---|---|
